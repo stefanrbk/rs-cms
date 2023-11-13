@@ -7,4 +7,5 @@ mod xyz;
 pub use date_time::DateTimeNumber;
 pub use position::PositionNumber;
 pub use response::ResponseNumber;
+pub use signature::Signature;
 pub use xyz::XYZNumber;
