@@ -15,6 +15,7 @@ macro_rules! unsafe_block {
 }
 
 pub type S15Fixed16Number = i32;
+pub type U16Fixed16Number = u32;
 
 mod state;
 mod types;
