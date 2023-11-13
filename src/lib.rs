@@ -4,7 +4,7 @@
 #![cfg_attr(debug_assertions, allow(dead_code))]
 
 /// Allow a block of 'unsafe' code with a reason.
-/// 
+///
 /// The macro will expand to an 'unsafe' block.
 macro_rules! unsafe_block {
     ($reason:tt => $body:expr) => {{
