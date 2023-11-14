@@ -5,7 +5,7 @@ use std::{
 
 use crate::MAX_CHANNELS;
 
-use super::{plugin::InterpolationPlugin, ErrorHandlerLogFunction};
+use super::{plugin::{InterpolationPlugin, ParametricCurvePlugin}, ErrorHandlerLogFunction};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -16,4 +16,5 @@ struct ContextInner {
     user_data: Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>>,
     error_logger: Option<ErrorHandlerLogFunction>,
     interp_factory: InterpolationPlugin,
+    curves: Vec<ParametricCurvePlugin>,
 }
