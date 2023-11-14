@@ -4,6 +4,7 @@ use crate::MAX_CHANNELS;
 
 use super::ErrorHandlerLogFunction;
 
+#[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
 
 struct ContextInner {
