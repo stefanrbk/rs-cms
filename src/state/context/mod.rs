@@ -1,8 +1,11 @@
-use std::{sync::{Arc, Mutex}, any::Any};
+use std::{
+    any::Any,
+    sync::{Arc, Mutex},
+};
 
 use crate::MAX_CHANNELS;
 
-use super::ErrorHandlerLogFunction;
+use super::{plugin::InterpolationPlugin, ErrorHandlerLogFunction};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -12,4 +15,5 @@ struct ContextInner {
     adaptation_state: f64,
     user_data: Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>>,
     error_logger: Option<ErrorHandlerLogFunction>,
+    interp_factory: InterpolationPlugin,
 }
