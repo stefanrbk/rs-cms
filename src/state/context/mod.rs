@@ -5,7 +5,7 @@ use std::{
 
 use crate::{MAX_CHANNELS, plugin::InterpFnFactory};
 
-use super::{plugin::ParametricCurve, ErrorHandlerLogFunction};
+use super::{plugin::{ParametricCurve, Formatters}, ErrorHandlerLogFunction};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -17,4 +17,5 @@ struct ContextInner {
     error_logger: Option<ErrorHandlerLogFunction>,
     interp_factory: InterpFnFactory,
     curves: Vec<ParametricCurve>,
+    formatters: Vec<Formatters>,
 }
