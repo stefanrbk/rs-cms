@@ -19,6 +19,8 @@ pub type U16Fixed16Number = u32;
 pub type U1Fixed15Number = u16;
 pub type U8Fixed8Number = u16;
 
+pub type Result<T> = core::result::Result<T, &'static str>;
+
 mod consts;
 mod state;
 mod types;
