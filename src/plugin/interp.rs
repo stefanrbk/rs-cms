@@ -1,4 +1,6 @@
-use crate::{state::PluginBase, types::InterpFunction, Result};
+use crate::{types::InterpFunction, Result};
+
+use super::PluginBase;
 
 pub type InterpFnFactory =
     fn(input_chans: usize, output_chans: usize, flags: u32) -> Result<InterpFunction>;

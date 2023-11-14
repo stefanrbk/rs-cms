@@ -1,4 +1,4 @@
-use crate::{state::PluginBase, types::Transform};
+use crate::types::Transform;
 
 pub type FormatterIn16 =
     for<'a> fn(cargo: Transform, values: &'a mut [u16], buffer: &'a [u8], stride: u32) -> &'a [u8];
@@ -21,8 +21,7 @@ pub type FormatterOutFloat = for<'a> fn(
 pub type FormatterInFactory = fn(r#type: u32, flags: u32) -> FormatterIn;
 pub type FormatterOutFactory = fn(r#type: u32, flags: u32) -> FormatterOut;
 
-pub struct FormatterPlugin {
-    pub base: PluginBase,
+pub struct Formatters {
     pub r#in: Vec<FormatterInFactory>,
     pub out: Vec<FormatterOutFactory>,
 }

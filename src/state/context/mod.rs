@@ -3,9 +3,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::MAX_CHANNELS;
+use crate::{MAX_CHANNELS, plugin::InterpFnFactory};
 
-use super::{plugin::{InterpolationPlugin, ParametricCurvePlugin}, ErrorHandlerLogFunction};
+use super::{plugin::ParametricCurve, ErrorHandlerLogFunction};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -15,6 +15,6 @@ struct ContextInner {
     adaptation_state: f64,
     user_data: Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>>,
     error_logger: Option<ErrorHandlerLogFunction>,
-    interp_factory: InterpolationPlugin,
-    curves: Vec<ParametricCurvePlugin>,
+    interp_factory: InterpFnFactory,
+    curves: Vec<ParametricCurve>,
 }
