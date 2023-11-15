@@ -5,7 +5,7 @@ use std::{
 
 use crate::{MAX_CHANNELS, plugin::{InterpFnFactory, TagTypeHandler}};
 
-use super::{plugin::{ParametricCurve, Formatters}, ErrorHandlerLogFunction};
+use super::{plugin::{ParametricCurve, Formatters, Tag}, ErrorHandlerLogFunction};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -20,4 +20,5 @@ struct ContextInner {
     formatters: Vec<Formatters>,
     tag_types: Vec<TagTypeHandler>,
     mpe_types: Vec<TagTypeHandler>,
+    tags: Vec<Tag>,
 }
