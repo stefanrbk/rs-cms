@@ -22,6 +22,7 @@ pub type U8Fixed8Number = u16;
 pub type Result<T> = core::result::Result<T, &'static str>;
 
 mod consts;
+pub mod io;
 pub mod plugin;
 pub mod state;
 pub mod types;
