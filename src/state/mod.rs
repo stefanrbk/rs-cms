@@ -1,10 +1,18 @@
 use crate::{
     plugin::{IntentFn, TagDescriptor},
-    types::Signature,
-    MAX_TYPES_IN_PLUGIN,
+    types::{Format, Pipeline, Signature},
+    Result, MAX_TYPES_IN_PLUGIN,
 };
 
 type ParametricCurveEvaluator = fn(r#type: i32, params: [f64; 10], r: f64) -> f64;
+
+type OptimizationFn = fn(
+    lut: &mut Pipeline,
+    intent: u32,
+    in_format: &mut Format,
+    out_format: &mut Format,
+    flags: &mut u32,
+) -> Result<()>;
 
 struct Intent {
     pub value: u32,

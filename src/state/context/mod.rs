@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    ErrorHandlerLogFunction, Intent, ParametricCurve, Tag,
+    ErrorHandlerLogFunction, Intent, ParametricCurve, Tag, OptimizationFn,
 };
 
 #[derive(Clone)]
@@ -28,4 +28,5 @@ struct ContextInner {
     mpe_types: Vec<TagTypeHandler>,
     tags: Vec<Tag>,
     intents: Vec<Intent>,
+    optimizations: Vec<OptimizationFn>,
 }
