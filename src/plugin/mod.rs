@@ -8,6 +8,7 @@ pub struct PluginBase {
 
 mod formatter;
 mod interp;
+mod rendering_intent;
 mod tag;
 mod tag_type;
 
