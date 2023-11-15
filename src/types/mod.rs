@@ -1,4 +1,5 @@
 mod date_time;
+mod format;
 mod interp_params;
 mod pipeline;
 mod position;
@@ -9,6 +10,7 @@ mod transform;
 mod xyz;
 
 pub use date_time::DateTimeNumber;
+pub use format::Format;
 pub use interp_params::{InterpFn, InterpFunction, InterpParams};
 pub use pipeline::Pipeline;
 pub use position::PositionNumber;
