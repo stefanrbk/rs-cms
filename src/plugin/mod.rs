@@ -10,3 +10,4 @@ mod interp;
 mod tag_type;
 
 pub use interp::{InterpFnFactory, InterpolationPlugin};
+pub use tag_type::TagTypeHandler;
