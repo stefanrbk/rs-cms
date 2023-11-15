@@ -1,4 +1,10 @@
-use crate::types::Signature;
+use crate::{plugin::IntentFn, types::Signature};
+
+struct Intent {
+    pub value: u32,
+    pub desc: &'static str,
+    pub r#fn: IntentFn,
+}
 
 mod context;
 mod error;

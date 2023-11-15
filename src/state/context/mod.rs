@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     plugin::{ParametricCurve, Tag},
-    ErrorHandlerLogFunction,
+    ErrorHandlerLogFunction, Intent,
 };
 
 #[derive(Clone)]
@@ -28,4 +28,5 @@ struct ContextInner {
     tag_types: Vec<TagTypeHandler>,
     mpe_types: Vec<TagTypeHandler>,
     tags: Vec<Tag>,
+    intents: Vec<Intent>,
 }
