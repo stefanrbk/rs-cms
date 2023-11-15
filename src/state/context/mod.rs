@@ -9,8 +9,7 @@ use crate::{
 };
 
 use super::{
-    plugin::{ParametricCurve, Tag},
-    ErrorHandlerLogFunction, Intent,
+    ErrorHandlerLogFunction, Intent, ParametricCurve, Tag,
 };
 
 #[derive(Clone)]
