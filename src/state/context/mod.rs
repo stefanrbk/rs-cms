@@ -5,12 +5,11 @@ use std::{
 
 use crate::{
     plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler},
+    types::TransformFunc,
     MAX_CHANNELS,
 };
 
-use super::{
-    ErrorHandlerLogFunction, Intent, ParametricCurve, Tag, OptimizationFn,
-};
+use super::{ErrorHandlerLogFunction, Intent, OptimizationFn, ParametricCurve, Tag};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -29,4 +28,5 @@ struct ContextInner {
     tags: Vec<Tag>,
     intents: Vec<Intent>,
     optimizations: Vec<OptimizationFn>,
+    transforms: Vec<TransformFunc>,
 }
