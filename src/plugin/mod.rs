@@ -7,5 +7,6 @@ pub struct PluginBase {
 }
 
 mod interp;
+mod tag_type;
 
 pub use interp::{InterpFnFactory, InterpolationPlugin};
