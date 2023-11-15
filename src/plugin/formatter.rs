@@ -21,11 +21,6 @@ pub type FormatterOutFloat = for<'a> fn(
 pub type FormatterInFactory = fn(r#type: u32, flags: u32) -> FormatterIn;
 pub type FormatterOutFactory = fn(r#type: u32, flags: u32) -> FormatterOut;
 
-pub struct Formatters {
-    pub r#in: Vec<FormatterInFactory>,
-    pub out: Vec<FormatterOutFactory>,
-}
-
 pub enum FormatterIn {
     F32(Option<FormatterInFloat>),
     U16(Option<FormatterIn16>),

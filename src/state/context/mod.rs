@@ -3,9 +3,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{MAX_CHANNELS, plugin::{InterpFnFactory, TagTypeHandler}};
+use crate::{
+    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler},
+    MAX_CHANNELS,
+};
 
-use super::{plugin::{ParametricCurve, Formatters, Tag}, ErrorHandlerLogFunction};
+use super::{
+    plugin::{ParametricCurve, Tag},
+    ErrorHandlerLogFunction,
+};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -17,7 +23,8 @@ struct ContextInner {
     error_logger: Option<ErrorHandlerLogFunction>,
     interp_factory: InterpFnFactory,
     curves: Vec<ParametricCurve>,
-    formatters: Vec<Formatters>,
+    formatters_in: Vec<FormatterInFactory>,
+    formatters_out: Vec<FormatterOutFactory>,
     tag_types: Vec<TagTypeHandler>,
     mpe_types: Vec<TagTypeHandler>,
     tags: Vec<Tag>,
