@@ -41,7 +41,7 @@ impl ErrorCode {
 }
 
 pub type ErrorHandlerLogFunction =
-    fn(context_id: &Context, level: Level, error_code: ErrorCode, text: &'static str);
+    fn(context_id: &Context, level: Level, error_code: ErrorCode, text: &str);
 
 pub fn default_error_handler_log_function(
     _context_id: &Context,
