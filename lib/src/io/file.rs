@@ -146,7 +146,7 @@ impl IoHandler for File {
                     error
                 )
             }
-        };
+        } / size;
 
         if n_read != count {
             return err!(
