@@ -18,4 +18,4 @@ pub use profile::Profile;
 pub use response::ResponseNumber;
 pub use signature::Signature;
 pub use transform::*;
-pub use xyz::XYZNumber;
+pub use xyz::{XYZNumber, XYZ};

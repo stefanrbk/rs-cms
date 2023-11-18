@@ -3,13 +3,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use log::Level;
+
 use crate::{
     plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler},
     types::TransformFunc,
     MAX_CHANNELS,
 };
 
-use super::{ErrorHandlerLogFunction, Intent, OptimizationFn, ParametricCurve, Tag};
+use super::{ErrorCode, ErrorHandlerLogFunction, Intent, OptimizationFn, ParametricCurve, Tag};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -29,4 +31,12 @@ struct ContextInner {
     intents: Vec<Intent>,
     optimizations: Vec<OptimizationFn>,
     transforms: Vec<TransformFunc>,
+}
+
+impl Context {
+    pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
+        if let Some(logger) = self.0.error_logger {
+            logger(&self, level, error_code, text);
+        }
+    }
 }
