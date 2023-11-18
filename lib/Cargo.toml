@@ -11,4 +11,5 @@ crate-type = ["rlib"]
 
 [dependencies]
 bitfield = "0.14.0"
+chrono = "0.4.31"
 log = "0.4.20"
