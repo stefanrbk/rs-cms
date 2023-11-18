@@ -71,13 +71,17 @@ impl IoHandler for FileMem {
 
         if self.pointer + len > block_size {
             let len = block_size - self.pointer;
-            self.context_id
-                .signal_error(Level::Error, ErrorCode::Read, &format!(
-                    "Read from memory error. Got {} bytes, block should be of {} bytes",
-                    len,
-                    count * size
-                ));
-            return Err(ErrorKind::UnexpectedEof.into());
+            return err!(
+                self.context_id,
+                Error,
+                Read,
+                "Read from memory error. Got {} bytes, block should be of {} bytes",
+                len,
+                count * size;
+                io =>
+                UnexpectedEof,
+                "Read from memory error. Not enough bytes read."
+            );
         }
 
         let ptr = &self.block.lock().unwrap()[self.pointer..];
@@ -89,12 +93,15 @@ impl IoHandler for FileMem {
 
     fn seek(&mut self, offset: usize) -> Result<()> {
         if offset > self.block.lock().unwrap().len() {
-            self.context_id.signal_error(
-                Level::Error,
-                ErrorCode::Seek,
-                "Too few data; probably corrupted profile",
+            return err!(
+                self.context_id,
+                Error,
+                Seek,
+                "Too few data; probably corrupted profile";
+                io =>
+                InvalidInput,
+                "Requested seek outside of file"
             );
-            return Err(ErrorKind::InvalidInput.into());
         }
         self.pointer = offset;
         Ok(())
