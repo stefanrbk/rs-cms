@@ -27,5 +27,5 @@ pub use tag::{TagDescriptor, TagPlugin};
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
 pub use transform::{
     Transform2Factory, Transform2FactoryResult, Transform2Fn, TransformFactory,
-    TransformFactoryResult, TransformFn, TransformFunc,
+    TransformFactoryResult, TransformFn, TransformFunc, TransformPlugin,
 };

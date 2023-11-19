@@ -1,6 +1,11 @@
 use std::any::Any;
 
-use crate::{types::{Transform, Stride, Pipeline, Format}, Result};
+use crate::{
+    types::{Format, Pipeline, Stride, Transform},
+    Result,
+};
+
+use super::PluginBase;
 
 pub type TransformFn =
     fn(cargo: &Transform, in_buf: &[u8], out_buf: &mut [u8], size: usize, stride: usize);
@@ -27,6 +32,11 @@ pub type Transform2Factory = fn(
     out_format: &mut Format,
     flags: &mut u32,
 ) -> Result<Transform2FactoryResult>;
+
+pub struct TransformPlugin {
+    pub base: PluginBase,
+    pub xform: TransformFunc,
+}
 
 pub enum TransformFunc {
     Factory(Transform2Factory),
