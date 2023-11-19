@@ -19,4 +19,4 @@ pub use formatter::{
 pub use interp::{InterpFnFactory, InterpolationPlugin};
 pub use rendering_intent::IntentFn;
 pub use tag::TagDescriptor;
-pub use tag_type::TagTypeHandler;
+pub use tag_type::{TagTypeHandler, TagTypePlugin};
