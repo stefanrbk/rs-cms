@@ -8,9 +8,9 @@ use log::Level;
 
 use crate::{
     plugin::{
-        FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
-        OptimizationFn, OptimizationPlugin, ParallelizationPlugin, PluginBase,
-        TagPlugin, TagTypeHandler, TransformFunc, TransformPlugin,
+        FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory, OptimizationFn,
+        OptimizationPlugin, ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
+        TransformPlugin,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -70,11 +70,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_tag_plugin(&mut self, data: &TagPlugin) -> Result<()> {
-        self.tags.push(Tag {
-            sig: data.sig,
-            desc: data.desc.clone(),
-        });
+    pub fn register_tag_plugin(&mut self, data: &Tag) -> Result<()> {
+        self.tags.push(data.clone());
 
         Ok(())
     }
