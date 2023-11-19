@@ -1,5 +1,5 @@
 use crate::{
-    plugin::{IntentFn, TagDescriptor, ParametricCurveEvaluator, CurveDef},
+    plugin::{CurveDef, IntentFn, ParametricCurveEvaluator, TagDescriptor, Transform2Fn},
     types::{Format, Pipeline, Signature},
     Result, MAX_TYPES_IN_PLUGIN,
 };
@@ -18,6 +18,12 @@ struct Tag {
 struct ParametricCurve {
     pub curves: &'static [CurveDef],
     pub eval: ParametricCurveEvaluator,
+}
+
+struct Parallelization {
+    pub max_workers: i32,
+    pub worker_flags: u32,
+    pub sched: Transform2Fn,
 }
 
 mod context;
