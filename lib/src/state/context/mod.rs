@@ -8,8 +8,8 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
-        InterpolationPlugin, OptimizationFn, OptimizationPlugin, TagPlugin, TagTypeHandler,
-        TagTypePlugin, TransformFunc, TransformPlugin,
+        InterpolationPlugin, OptimizationFn, OptimizationPlugin, ParallelizationPlugin, TagPlugin,
+        TagTypeHandler, TagTypePlugin, TransformFunc, TransformPlugin,
     },
     Result, MAX_CHANNELS,
 };
@@ -99,6 +99,16 @@ impl ContextInner {
 
     pub fn register_transform_plugin(&mut self, data: &TransformPlugin) -> Result<()> {
         self.transforms.push(data.xform.clone());
+
+        Ok(())
+    }
+
+    pub fn register_parallelization_plugin(&mut self, data: &ParallelizationPlugin) -> Result<()> {
+        self.parallel = Some(Parallelization {
+            max_workers: data.max_workers,
+            worker_flags: data.worker_flags,
+            sched: data.sched,
+        });
 
         Ok(())
     }
