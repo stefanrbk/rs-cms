@@ -6,12 +6,14 @@ pub struct PluginBase {
     pub r#type: Signature,
 }
 
+mod curves;
 mod formatter;
 mod interp;
 mod rendering_intent;
 mod tag;
 mod tag_type;
 
+pub use curves::{CurveDef, ParametricCurveEvaluator};
 pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
