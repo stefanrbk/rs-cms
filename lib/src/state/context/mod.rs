@@ -9,10 +9,10 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
-        InterpolationPlugin, OptimizationFn, OptimizationPlugin, ParallelizationPlugin, PluginBase,
+        OptimizationFn, OptimizationPlugin, ParallelizationPlugin, PluginBase,
         TagPlugin, TagTypeHandler, TagTypePlugin, TransformFunc, TransformPlugin,
     },
-    sig, Result, MAX_CHANNELS, VERSION, types::InterpFunction,
+    sig, Result, MAX_CHANNELS, VERSION,
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
@@ -58,8 +58,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_tag_type_plugin(&mut self, data: &TagTypePlugin) -> Result<()> {
-        self.tag_types.push(data.handler.clone());
+    pub fn register_tag_type_plugin(&mut self, data: &TagTypeHandler) -> Result<()> {
+        self.tag_types.push(data.clone());
 
         Ok(())
     }
