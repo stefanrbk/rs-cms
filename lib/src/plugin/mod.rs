@@ -9,6 +9,7 @@ pub struct PluginBase {
 mod curves;
 mod formatter;
 mod interp;
+mod optimization;
 mod rendering_intent;
 mod tag;
 mod tag_type;
@@ -19,6 +20,7 @@ pub use formatter::{
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
 pub use interp::{InterpFnFactory, InterpolationPlugin};
+pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use rendering_intent::IntentFn;
 pub use tag::{TagDescriptor, TagPlugin};
 pub use tag_type::{TagTypeHandler, TagTypePlugin};

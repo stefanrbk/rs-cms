@@ -4,14 +4,6 @@ use crate::{
     Result, MAX_TYPES_IN_PLUGIN,
 };
 
-type OptimizationFn = fn(
-    lut: &mut Pipeline,
-    intent: u32,
-    in_format: &mut Format,
-    out_format: &mut Format,
-    flags: &mut u32,
-) -> Result<()>;
-
 struct Intent {
     pub value: u32,
     pub desc: &'static str,
