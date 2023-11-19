@@ -14,7 +14,7 @@ use crate::{
     Result, MAX_CHANNELS,
 };
 
-use super::{ErrorCode, ErrorHandlerLogFunction, Intent, ParametricCurve, Tag};
+use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -34,6 +34,7 @@ struct ContextInner {
     intents: Vec<Intent>,
     optimizations: Vec<OptimizationFn>,
     transforms: Vec<TransformFunc>,
+    parallel: Option<Parallelization>,
 }
 
 impl Context {
