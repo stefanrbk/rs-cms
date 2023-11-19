@@ -1,5 +1,6 @@
 use std::{
     any::Any,
+    ops::Deref,
     sync::{Arc, Mutex},
 };
 
@@ -8,10 +9,10 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
-        InterpolationPlugin, OptimizationFn, OptimizationPlugin, ParallelizationPlugin, TagPlugin,
-        TagTypeHandler, TagTypePlugin, TransformFunc, TransformPlugin,
+        InterpolationPlugin, OptimizationFn, OptimizationPlugin, ParallelizationPlugin, PluginBase,
+        TagPlugin, TagTypeHandler, TagTypePlugin, TransformFunc, TransformPlugin,
     },
-    Result, MAX_CHANNELS,
+    sig, Result, MAX_CHANNELS, VERSION, types::InterpFunction,
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
@@ -19,6 +20,7 @@ use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, Paramet
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
 
+#[derive(Clone)]
 struct ContextInner {
     alarm_codes: [u16; MAX_CHANNELS],
     adaptation_state: f64,

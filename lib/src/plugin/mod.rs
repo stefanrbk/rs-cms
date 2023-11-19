@@ -1,9 +1,12 @@
-use crate::types::Signature;
+use std::any::Any;
+
+use crate::{types::Signature, SemVer};
 
 pub struct PluginBase {
     pub magic: Signature,
-    pub expected_version: u32,
+    pub expected_version: SemVer,
     pub r#type: Signature,
+    pub inner: &'static dyn Any,
 }
 
 mod curves;
