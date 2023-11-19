@@ -1,8 +1,6 @@
 use core::cmp::Ordering;
 use std::fmt::Display;
 
-use regex::Regex;
-
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub struct SemVer(u32, u32, u32);
 
