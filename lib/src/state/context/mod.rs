@@ -10,7 +10,7 @@ use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
         OptimizationFn, OptimizationPlugin, ParallelizationPlugin, PluginBase,
-        TagPlugin, TagTypeHandler, TagTypePlugin, TransformFunc, TransformPlugin,
+        TagPlugin, TagTypeHandler, TransformFunc, TransformPlugin,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -64,8 +64,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_mpe_type_plugin(&mut self, data: &TagTypePlugin) -> Result<()> {
-        self.mpe_types.push(data.handler.clone());
+    pub fn register_mpe_type_plugin(&mut self, data: &TagTypeHandler) -> Result<()> {
+        self.mpe_types.push(data.clone());
 
         Ok(())
     }
