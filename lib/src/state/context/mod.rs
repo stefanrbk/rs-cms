@@ -6,9 +6,12 @@ use std::{
 use log::Level;
 
 use crate::{
-    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin, TagTypePlugin, TagPlugin, FormatterPlugin, OptimizationFn, OptimizationPlugin},
-    types::TransformFunc,
-    MAX_CHANNELS, Result,
+    plugin::{
+        FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory,
+        InterpolationPlugin, OptimizationFn, OptimizationPlugin, TagPlugin, TagTypeHandler,
+        TagTypePlugin, TransformFunc, TransformPlugin,
+    },
+    Result, MAX_CHANNELS,
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, ParametricCurve, Tag};
@@ -65,7 +68,10 @@ impl ContextInner {
     }
 
     pub fn register_tag_plugin(&mut self, data: &TagPlugin) -> Result<()> {
-        self.tags.push(Tag { sig: data.sig, desc: data.desc.clone() });
+        self.tags.push(Tag {
+            sig: data.sig,
+            desc: data.desc.clone(),
+        });
 
         Ok(())
     }
@@ -86,6 +92,12 @@ impl ContextInner {
 
     pub fn register_optimization_plugin(&mut self, data: &OptimizationPlugin) -> Result<()> {
         self.optimizations.push(data.r#fn);
+
+        Ok(())
+    }
+
+    pub fn register_transform_plugin(&mut self, data: &TransformPlugin) -> Result<()> {
+        self.transforms.push(data.xform.clone());
 
         Ok(())
     }
