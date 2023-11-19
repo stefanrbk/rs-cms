@@ -52,8 +52,8 @@ impl Context {
 }
 
 impl ContextInner {
-    pub fn register_interp_plugin(&mut self, data: &InterpolationPlugin) -> Result<()> {
-        self.interp_factory = data.factory;
+    pub fn register_interp_plugin(&mut self, data: &InterpFnFactory) -> Result<()> {
+        self.interp_factory = *data;
 
         Ok(())
     }
