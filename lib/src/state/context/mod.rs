@@ -39,4 +39,8 @@ impl Context {
             logger(&self, level, error_code, text);
         }
     }
+
+    pub fn get_user_data(&self) -> Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>> {
+        Some(self.0.user_data.clone()?)
+    }
 }
