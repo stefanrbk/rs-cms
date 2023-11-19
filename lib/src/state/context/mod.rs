@@ -76,9 +76,9 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_formatter_plugin(&mut self, data: &FormatterPlugin) -> Result<()> {
-        self.formatters_in.push(data.in_factory);
-        self.formatters_out.push(data.out_factory);
+    pub fn register_formatter_plugin(&mut self, data: &(FormatterInFactory, FormatterOutFactory)) -> Result<()> {
+        self.formatters_in.push(data.0);
+        self.formatters_out.push(data.1);
 
         Ok(())
     }
