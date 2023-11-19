@@ -9,7 +9,7 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
-        ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
+        PluginBase, TagTypeHandler, TransformFunc,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -100,12 +100,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_parallelization_plugin(&mut self, data: &ParallelizationPlugin) -> Result<()> {
-        self.parallel = Some(Parallelization {
-            max_workers: data.max_workers,
-            worker_flags: data.worker_flags,
-            sched: data.sched,
-        });
+    pub fn register_parallelization_plugin(&mut self, data: &Parallelization) -> Result<()> {
+        self.parallel = Some(data.clone());
 
         Ok(())
     }
