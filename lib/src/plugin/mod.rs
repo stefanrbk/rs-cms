@@ -14,7 +14,7 @@ mod tag_type;
 
 pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
-    FormatterOutFactory, FormatterOutFloat,
+    FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
 pub use interp::{InterpFnFactory, InterpolationPlugin};
 pub use rendering_intent::IntentFn;
