@@ -31,4 +31,5 @@ pub mod state;
 pub mod types;
 
 pub use consts::*;
+pub(crate) use err::*;
 pub use functions::*;
