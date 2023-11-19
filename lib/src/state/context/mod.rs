@@ -6,12 +6,12 @@ use std::{
 use log::Level;
 
 use crate::{
-    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin, TagTypePlugin, TagPlugin, FormatterPlugin},
+    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin, TagTypePlugin, TagPlugin, FormatterPlugin, OptimizationFn, OptimizationPlugin},
     types::TransformFunc,
     MAX_CHANNELS, Result,
 };
 
-use super::{ErrorCode, ErrorHandlerLogFunction, Intent, OptimizationFn, ParametricCurve, Tag};
+use super::{ErrorCode, ErrorHandlerLogFunction, Intent, ParametricCurve, Tag};
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -80,6 +80,12 @@ impl ContextInner {
     pub fn register_parametric_curve_plugin(&mut self, data: &FormatterPlugin) -> Result<()> {
         self.formatters_in.push(data.in_factory);
         self.formatters_out.push(data.out_factory);
+
+        Ok(())
+    }
+
+    pub fn register_optimization_plugin(&mut self, data: &OptimizationPlugin) -> Result<()> {
+        self.optimizations.push(data.r#fn);
 
         Ok(())
     }
