@@ -28,6 +28,7 @@ mod functions;
 pub mod io;
 pub mod plugin;
 mod sem_ver;
+pub mod sig;
 pub mod state;
 pub mod types;
 
