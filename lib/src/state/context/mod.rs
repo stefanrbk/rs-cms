@@ -8,7 +8,7 @@ use log::Level;
 
 use crate::{
     plugin::{
-        FormatterInFactory, FormatterOutFactory, FormatterPlugin, InterpFnFactory, OptimizationFn,
+        FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
         OptimizationPlugin, ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
         TransformPlugin,
     },
@@ -83,9 +83,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_parametric_curve_plugin(&mut self, data: &FormatterPlugin) -> Result<()> {
-        self.formatters_in.push(data.in_factory);
-        self.formatters_out.push(data.out_factory);
+    pub fn register_parametric_curve_plugin(&mut self, data: &ParametricCurve) -> Result<()> {
+        self.curves.push(data.clone());
 
         Ok(())
     }
