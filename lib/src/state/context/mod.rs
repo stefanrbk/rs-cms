@@ -6,9 +6,9 @@ use std::{
 use log::Level;
 
 use crate::{
-    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler},
+    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin},
     types::TransformFunc,
-    MAX_CHANNELS,
+    MAX_CHANNELS, Result,
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, OptimizationFn, ParametricCurve, Tag};
