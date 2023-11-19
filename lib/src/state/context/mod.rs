@@ -39,6 +39,9 @@ struct ContextInner {
 }
 
 impl Context {
+    // pub fn new() -> Result<Self> {
+    // }
+
     pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
         if let Some(logger) = self.0.error_logger {
             logger(&self, level, error_code, text);
@@ -52,6 +55,14 @@ impl Context {
     pub fn register_plugins(&self, plugins: &[&'static PluginBase]) -> Result<Self> {
         let mut inner: ContextInner = self.0.deref().clone();
 
+        inner.register_plugins(plugins);
+
+        Ok(Context(Arc::new(inner)))
+    }
+}
+
+impl ContextInner {
+    pub fn register_plugins(&mut self, plugins: &[&'static PluginBase]) -> Result<()> {
         for plugin in plugins {
             if plugin.magic != sig::plugin::MAGIC_NUMBER {
                 return err!(self, Error, UnknownExtension, "Unrecognized plugin"; str => "Unrecognized plugin");
@@ -71,49 +82,49 @@ impl Context {
             match plugin.r#type {
                 sig::plugin::INTERPOLATION => {
                     match plugin.inner.downcast_ref::<InterpFnFactory>() {
-                        Some(interp) => inner.register_interp_plugin(interp)?,
+                        Some(interp) => self.register_interp_plugin(interp)?,
                         None => return err!(str => "Interpolation plugin did not contain an InterpFnFactory"),
                     }
                 },
                 sig::plugin::TAG_TYPE => {
                     match plugin.inner.downcast_ref::<TagTypeHandler>() {
-                        Some(handler) => inner.register_tag_type_plugin(handler)?,
+                        Some(handler) => self.register_tag_type_plugin(handler)?,
                         None => return err!(str => "Tag type plugin did not contain a TagTypeHandler"),
                     }
                 },
                 sig::plugin::MULTI_PROCESS_ELEMENT => {
                     match plugin.inner.downcast_ref::<TagTypeHandler>() {
-                        Some(handler) => inner.register_tag_type_plugin(handler)?,
+                        Some(handler) => self.register_tag_type_plugin(handler)?,
                         None => return err!(str => "MPE plugin did not contain a TagTypeHandler"),
                     }
                 },
                 sig::plugin::TAG => {
                     match plugin.inner.downcast_ref::<Tag>() {
-                        Some(tag) => inner.register_tag_plugin(tag)?,
+                        Some(tag) => self.register_tag_plugin(tag)?,
                         None => return err!(str => "Tag plugin did not contain a Tag"),
                     }
                 },
                 sig::plugin::FORMATTERS => {
                     match plugin.inner.downcast_ref::<(&FormatterInFactory, &FormatterOutFactory)>() {
-                        Some(fmt) => inner.register_formatter_plugin(*fmt)?,
+                        Some(fmt) => self.register_formatter_plugin(*fmt)?,
                         None => return err!(str => "Formatter plugin did not contain a tuple of FormatterInFactory and FormatterOutFactory"),
                     }
                 },
                 sig::plugin::OPTIMIZATION => {
                     match plugin.inner.downcast_ref::<OptimizationFn>() {
-                        Some(opt) => inner.register_optimization_plugin(opt)?,
+                        Some(opt) => self.register_optimization_plugin(opt)?,
                         None => return err!(str => "Optimization plugin did not contain an OptimizationFn"),
                     }
                 },
                 sig::plugin::TRANSFORM => {
                     match plugin.inner.downcast_ref::<TransformFunc>() {
-                        Some(transform) => inner.register_transform_plugin(transform)?,
+                        Some(transform) => self.register_transform_plugin(transform)?,
                         None => return err!(str => "Transform plugin did not contain a TransformFunc"),
                     }
                 },
                 sig::plugin::PARALLELIZATION => {
                     match plugin.inner.downcast_ref::<Parallelization>() {
-                        Some(parallel) => inner.register_parallelization_plugin(parallel)?,
+                        Some(parallel) => self.register_parallelization_plugin(parallel)?,
                         None => return err!(str => "Parallelization plugin did not contain a Parallelization"),
                     }
                 },
@@ -121,11 +132,8 @@ impl Context {
             }
         }
 
-        Ok(Context(Arc::new(inner)))
+        Ok(())
     }
-}
-
-impl ContextInner {
     pub fn register_interp_plugin(&mut self, data: &InterpFnFactory) -> Result<()> {
         self.interp_factory = *data;
 
