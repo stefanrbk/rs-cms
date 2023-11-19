@@ -27,9 +27,11 @@ mod err;
 mod functions;
 pub mod io;
 pub mod plugin;
+mod sem_ver;
 pub mod state;
 pub mod types;
 
 pub use consts::*;
 pub(crate) use err::*;
 pub use functions::*;
+pub use sem_ver::SemVer;
