@@ -4,6 +4,7 @@ use crate::{types::Signature, MAX_TYPES_IN_PLUGIN};
 
 use super::PluginBase;
 
+#[derive(Clone)]
 pub struct TagDescriptor {
     pub elem_count: usize,
     pub n_supported_types: usize,
