@@ -10,7 +10,6 @@ use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
         ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
-        TransformPlugin,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -95,8 +94,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_transform_plugin(&mut self, data: &TransformPlugin) -> Result<()> {
-        self.transforms.push(data.xform.clone());
+    pub fn register_transform_plugin(&mut self, data: &TransformFunc) -> Result<()> {
+        self.transforms.push(data.clone());
 
         Ok(())
     }
