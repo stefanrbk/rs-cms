@@ -76,4 +76,11 @@ impl ContextInner {
 
         Ok(())
     }
+
+    pub fn register_parametric_curve_plugin(&mut self, data: &FormatterPlugin) -> Result<()> {
+        self.formatters_in.push(data.in_factory);
+        self.formatters_out.push(data.out_factory);
+
+        Ok(())
+    }
 }
