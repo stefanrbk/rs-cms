@@ -44,3 +44,11 @@ impl Context {
         Some(self.0.user_data.clone()?)
     }
 }
+
+impl ContextInner {
+    pub fn register_interp_plugin(&mut self, data: InterpolationPlugin) -> Result<()> {
+        self.interp_factory = data.factory;
+
+        Ok(())
+    }
+}
