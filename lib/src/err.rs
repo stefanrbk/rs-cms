@@ -1,4 +1,8 @@
 macro_rules! err {
+    (str => $s:tt) => { {
+            Err($s)
+        }
+    };
     ($c:expr, $l:ident, $e:ident, $s:tt; str => $ss:tt) => { {
                 $c.signal_error(
                 log::Level::$l,
