@@ -13,6 +13,7 @@ mod optimization;
 mod rendering_intent;
 mod tag;
 mod tag_type;
+mod transform;
 
 pub use curves::{CurveDef, ParametricCurveEvaluator};
 pub use formatter::{
@@ -24,3 +25,7 @@ pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use rendering_intent::IntentFn;
 pub use tag::{TagDescriptor, TagPlugin};
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
+pub use transform::{
+    Transform2Factory, Transform2FactoryResult, Transform2Fn, TransformFactory,
+    TransformFactoryResult, TransformFn, TransformFunc,
+};
