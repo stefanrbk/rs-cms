@@ -9,7 +9,7 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
-        OptimizationPlugin, ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
+        ParallelizationPlugin, PluginBase, TagTypeHandler, TransformFunc,
         TransformPlugin,
     },
     sig, Result, MAX_CHANNELS, VERSION,
@@ -89,8 +89,8 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_optimization_plugin(&mut self, data: &OptimizationPlugin) -> Result<()> {
-        self.optimizations.push(data.r#fn);
+    pub fn register_optimization_plugin(&mut self, data: &OptimizationFn) -> Result<()> {
+        self.optimizations.push(*data);
 
         Ok(())
     }
