@@ -6,7 +6,7 @@ use std::{
 use log::Level;
 
 use crate::{
-    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin},
+    plugin::{FormatterInFactory, FormatterOutFactory, InterpFnFactory, TagTypeHandler, InterpolationPlugin, TagTypePlugin},
     types::TransformFunc,
     MAX_CHANNELS, Result,
 };
@@ -46,8 +46,20 @@ impl Context {
 }
 
 impl ContextInner {
-    pub fn register_interp_plugin(&mut self, data: InterpolationPlugin) -> Result<()> {
+    pub fn register_interp_plugin(&mut self, data: &InterpolationPlugin) -> Result<()> {
         self.interp_factory = data.factory;
+
+        Ok(())
+    }
+
+    pub fn register_tag_type_plugin(&mut self, data: &TagTypePlugin) -> Result<()> {
+        self.tag_types.push(data.handler.clone());
+
+        Ok(())
+    }
+
+    pub fn register_mpe_type_plugin(&mut self, data: &TagTypePlugin) -> Result<()> {
+        self.mpe_types.push(data.handler.clone());
 
         Ok(())
     }
