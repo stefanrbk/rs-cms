@@ -1,6 +1,11 @@
 use std::any::Any;
 
-use crate::{sig, state::{ParametricCurve, Intent}, types::Signature, SemVer};
+use crate::{
+    sig,
+    state::{Intent, ParametricCurve},
+    types::Signature,
+    SemVer,
+};
 
 pub struct Plugin {
     pub(crate) magic: Signature,
@@ -39,7 +44,7 @@ impl Plugin {
         Self::new(sig::plugin::TAG, data)
     }
 
-    pub const fn create_intents_plugin(data: &'static &'static[Intent]) -> Self {
+    pub const fn create_intents_plugin(data: &'static &'static [Intent]) -> Self {
         Self::new(sig::plugin::RENDERING_INTENT, data)
     }
 
@@ -78,6 +83,7 @@ pub use interp::InterpFnFactory;
 pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
+pub(crate) use rendering_intent::DEFAULT_INTENTS;
 pub use tag::{TagDescriptor, TagPlugin};
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
 pub use transform::{
