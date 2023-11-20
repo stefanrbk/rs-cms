@@ -9,6 +9,15 @@ pub struct Plugin {
     pub inner: &'static dyn Any,
 }
 
+pub fn create_interpolation_plugin(factory: &'static InterpFnFactory) -> Plugin {
+    Plugin {
+        magic: sig::plugin::MAGIC_NUMBER,
+        expected_version: SemVer::new(0, 1, 0),
+        r#type: sig::plugin::INTERPOLATION,
+        inner: factory,
+    }
+}
+
 mod curves;
 mod formatter;
 mod interp;
