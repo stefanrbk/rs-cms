@@ -42,6 +42,10 @@ impl Plugin {
     pub const fn create_intents_plugin(data: &'static &'static[Intent]) -> Self {
         Self::new(sig::plugin::RENDERING_INTENT, data)
     }
+
+    pub const fn create_mpe_type_plugin(data: &'static &'static [TagTypeHandler]) -> Self {
+        Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
+    }
 }
 
 mod curves;
