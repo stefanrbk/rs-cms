@@ -80,3 +80,19 @@ impl FormatterOut {
         }
     }
 }
+
+pub(crate) fn default_input_formatter_factory(_type: u32, _flags: u32) -> FormatterIn {
+    todo!()
+}
+
+pub(crate) fn default_output_formatter_factory(_type: u32, _flags: u32) -> FormatterOut {
+    todo!()
+}
+
+pub(crate) static DEFAULT_FORMATTER_FACTORIES: (
+    &'static FormatterInFactory,
+    &'static FormatterOutFactory,
+) = (
+    &(default_input_formatter_factory as fn(u32, u32) -> FormatterIn),
+    &(default_output_formatter_factory as fn(u32, u32) -> FormatterOut),
+);
