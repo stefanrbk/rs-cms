@@ -89,17 +89,17 @@ impl ContextInner {
                         }
                     }
                 }
-                sig::plugin::TAG_TYPE => match plugin.inner.downcast_ref::<TagTypeHandler>() {
+                sig::plugin::TAG_TYPE => match plugin.inner.downcast_ref::<&[TagTypeHandler]>() {
                     Some(handler) => self.register_tag_type_plugin(handler)?,
                     None => return err!(str => "Tag type plugin did not contain a TagTypeHandler"),
                 },
                 sig::plugin::MULTI_PROCESS_ELEMENT => {
-                    match plugin.inner.downcast_ref::<TagTypeHandler>() {
+                    match plugin.inner.downcast_ref::<&[TagTypeHandler]>() {
                         Some(handler) => self.register_tag_type_plugin(handler)?,
                         None => return err!(str => "MPE plugin did not contain a TagTypeHandler"),
                     }
                 }
-                sig::plugin::TAG => match plugin.inner.downcast_ref::<Tag>() {
+                sig::plugin::TAG => match plugin.inner.downcast_ref::<&[Tag]>() {
                     Some(tag) => self.register_tag_plugin(tag)?,
                     None => return err!(str => "Tag plugin did not contain a Tag"),
                 },
@@ -158,20 +158,26 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_tag_type_plugin(&mut self, data: &TagTypeHandler) -> Result<()> {
-        self.tag_types.push(data.clone());
+    pub fn register_tag_type_plugin(&mut self, data: &'static [TagTypeHandler]) -> Result<()> {
+        for i in data {
+            self.tag_types.push(i.clone());
+        }
 
         Ok(())
     }
 
-    pub fn register_mpe_type_plugin(&mut self, data: &TagTypeHandler) -> Result<()> {
-        self.mpe_types.push(data.clone());
+    pub fn register_mpe_type_plugin(&mut self, data: &'static [TagTypeHandler]) -> Result<()> {
+        for i in data {
+            self.mpe_types.push(i.clone());
+        }
 
         Ok(())
     }
 
-    pub fn register_tag_plugin(&mut self, data: &Tag) -> Result<()> {
-        self.tags.push(data.clone());
+    pub fn register_tag_plugin(&mut self, data: &'static [Tag]) -> Result<()> {
+        for i in data {
+            self.tags.push(i.clone());
+        }
 
         Ok(())
     }
