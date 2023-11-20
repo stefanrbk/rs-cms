@@ -25,7 +25,9 @@ impl Plugin {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 
-    pub fn create_formatter_plugin(data: &'static (&'static FormatterInFactory, &'static FormatterOutFactory)) -> Self {
+    pub fn create_formatter_plugin(
+        data: &'static (&'static FormatterInFactory, &'static FormatterOutFactory),
+    ) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 
@@ -44,6 +46,7 @@ mod tag;
 mod tag_type;
 mod transform;
 
+pub(crate) use curves::DEFAULT_PARAMETRIC_CURVE;
 pub use curves::{CurveDef, ParametricCurveEvaluator};
 pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
