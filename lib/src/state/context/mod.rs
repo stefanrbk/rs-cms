@@ -9,7 +9,7 @@ use log::Level;
 use crate::{
     plugin::{
         FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn, Plugin,
-        TagTypeHandler, TransformFunc,
+        TagTypeHandler, TransformFunc, default_interpolators_factory, DEFAULT_PARAMETRIC_CURVE, DEFAULT_TAG_TYPE_HANDLERS, DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAGS, DEFAULT_INTENTS, DEFAULT_OPTIMIZATIONS, DEFAULT_TRANSFORM_FACTORIES, DEFAULT_FORMATTER_FACTORIES,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -39,8 +39,27 @@ struct ContextInner {
 }
 
 impl Context {
-    // pub fn new() -> Result<Self> {
-    // }
+    pub fn new() -> Result<Self> {
+        Ok(Context(Arc::new(
+            ContextInner {
+                alarm_codes: [0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                adaptation_state: 1.0,
+                user_data: None,
+                error_logger: None,
+                interp_factory: default_interpolators_factory,
+                curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
+                formatters_in: vec![*DEFAULT_FORMATTER_FACTORIES.0],
+                formatters_out: vec![*DEFAULT_FORMATTER_FACTORIES.1],
+                tag_types: DEFAULT_TAG_TYPE_HANDLERS.to_vec(),
+                mpe_types: DEFAULT_MPE_TYPE_HANDLERS.to_vec(),
+                tags: DEFAULT_TAGS.to_vec(),
+                intents: DEFAULT_INTENTS.to_vec(),
+                optimizations: DEFAULT_OPTIMIZATIONS.to_vec(),
+                transforms: DEFAULT_TRANSFORM_FACTORIES.to_vec(),
+                parallel: None
+            }
+        )))
+    }
 
     pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
         if let Some(logger) = self.0.error_logger {
