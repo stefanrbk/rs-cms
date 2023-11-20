@@ -71,25 +71,26 @@ mod tag;
 mod tag_type;
 mod transform;
 
-pub(crate) use curves::DEFAULT_PARAMETRIC_CURVE;
 pub use curves::{CurveDef, ParametricCurveEvaluator};
-pub(crate) use formatter::DEFAULT_FORMATTER_FACTORIES;
 pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
-pub(crate) use interp::default_interpolators_factory;
 pub use interp::InterpFnFactory;
 pub use optimization::OptimizationFn;
-pub(crate) use optimization::DEFAULT_OPTIMIZATIONS;
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
-pub(crate) use rendering_intent::DEFAULT_INTENTS;
 pub use tag::TagDescriptor;
-pub(crate) use tag::DEFAULT_TAGS;
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
-pub(crate) use tag_type::{DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAG_TYPE_HANDLERS};
 pub use transform::{
     Transform2Factory, Transform2FactoryResult, Transform2Fn, TransformFactory,
     TransformFactoryResult, TransformFn, TransformFunc, TransformPlugin,
 };
+
+pub(crate) use curves::DEFAULT_PARAMETRIC_CURVE;
+pub(crate) use formatter::DEFAULT_FORMATTER_FACTORIES;
+pub(crate) use interp::default_interpolators_factory;
+pub(crate) use optimization::DEFAULT_OPTIMIZATIONS;
+pub(crate) use rendering_intent::DEFAULT_INTENTS;
+pub(crate) use tag::DEFAULT_TAGS;
+pub(crate) use tag_type::{DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAG_TYPE_HANDLERS};
