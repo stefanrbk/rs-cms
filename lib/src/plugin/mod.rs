@@ -1,20 +1,36 @@
 use std::any::Any;
 
-use crate::{sig, types::Signature, SemVer};
+use crate::{sig, state::ParametricCurve, types::Signature, SemVer};
 
 pub struct Plugin {
-    pub magic: Signature,
-    pub expected_version: SemVer,
-    pub r#type: Signature,
-    pub inner: &'static dyn Any,
+    pub(crate) magic: Signature,
+    pub(crate) expected_version: SemVer,
+    pub(crate) r#type: Signature,
+    pub(crate) inner: &'static dyn Any,
 }
+impl Plugin {
+    fn new(r#type: Signature, inner: &'static dyn Any) -> Self {
+        Self {
+            magic: sig::plugin::MAGIC_NUMBER,
+            expected_version: SemVer::new(0, 1, 0),
+            r#type,
+            inner,
+        }
+    }
+    pub fn create_interpolation_plugin(factory: &'static InterpFnFactory) -> Self {
+        Self::new(sig::plugin::INTERPOLATION, factory)
+    }
 
-pub fn create_interpolation_plugin(factory: &'static InterpFnFactory) -> Plugin {
-    Plugin {
-        magic: sig::plugin::MAGIC_NUMBER,
-        expected_version: SemVer::new(0, 1, 0),
-        r#type: sig::plugin::INTERPOLATION,
-        inner: factory,
+    pub fn create_parametric_curve_plugin(data: &'static ParametricCurve) -> Self {
+        Self::new(sig::plugin::PARAMETRIC_CURVE, data)
+    }
+
+    pub fn create_formatter_plugin(data: &'static (&'static FormatterInFactory, &'static FormatterOutFactory)) -> Self {
+        Self::new(sig::plugin::PARAMETRIC_CURVE, data)
+    }
+
+    pub fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
+        Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 }
 
