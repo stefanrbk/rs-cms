@@ -53,3 +53,5 @@ pub struct Transform2FactoryResult {
     pub xform: Transform2Fn,
     pub data: Option<Box<dyn Any>>,
 }
+
+pub(crate) static DEFAULT_TRANSFORM_FACTORIES: &[TransformFunc] = &[];

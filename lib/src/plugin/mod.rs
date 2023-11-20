@@ -94,3 +94,4 @@ pub(crate) use optimization::DEFAULT_OPTIMIZATIONS;
 pub(crate) use rendering_intent::DEFAULT_INTENTS;
 pub(crate) use tag::DEFAULT_TAGS;
 pub(crate) use tag_type::{DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAG_TYPE_HANDLERS};
+pub(crate) use transform::DEFAULT_TRANSFORM_FACTORIES;
