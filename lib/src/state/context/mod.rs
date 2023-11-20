@@ -114,7 +114,7 @@ impl ContextInner {
                         }
                     }
                 }
-                sig::plugin::RENDERING_INTENT => match plugin.inner.downcast_ref::<&Intent>() {
+                sig::plugin::RENDERING_INTENT => match plugin.inner.downcast_ref::<&[Intent]>() {
                     Some(intent) => self.register_rendering_intent_plugin(intent)?,
                     None => {
                         return err!(str => "Rendering intent plugin did not contain an Intent")
@@ -186,8 +186,11 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_rendering_intent_plugin(&mut self, data: &Intent) -> Result<()> {
-        self.intents.push(data.clone());
+    pub fn register_rendering_intent_plugin(&mut self, data: &[Intent]) -> Result<()> {
+        self.intents.reserve(data.len());
+        for i in data {
+            self.intents.push(i.clone());
+        }
 
         Ok(())
     }

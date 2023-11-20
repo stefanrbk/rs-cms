@@ -39,7 +39,7 @@ impl Plugin {
         Self::new(sig::plugin::TAG, data)
     }
 
-    pub const fn create_intents_plugin(data: &'static Intent) -> Self {
+    pub const fn create_intents_plugin(data: &'static &'static[Intent]) -> Self {
         Self::new(sig::plugin::RENDERING_INTENT, data)
     }
 }
