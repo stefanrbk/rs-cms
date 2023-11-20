@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{types::Signature, SemVer, state::ErrorHandlerLogFunction, sig};
+use crate::{types::Signature, SemVer, sig};
 
 pub struct Plugin {
     pub magic: Signature,
