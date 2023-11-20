@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{types::Signature, MAX_TYPES_IN_PLUGIN};
+use crate::{state::Tag, types::Signature, MAX_TYPES_IN_PLUGIN};
 
 use super::Plugin;
 
@@ -12,8 +12,4 @@ pub struct TagDescriptor {
     pub decide_type: Option<fn(icc_version: f64, data: &Box<dyn Any>) -> Signature>,
 }
 
-pub struct TagPlugin {
-    pub base: Plugin,
-    pub sig: Signature,
-    pub desc: TagDescriptor,
-}
+pub(crate) static DEFAULT_TAGS: &[Tag] = &[];

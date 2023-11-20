@@ -85,7 +85,8 @@ pub(crate) use optimization::DEFAULT_OPTIMIZATIONS;
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
 pub(crate) use rendering_intent::DEFAULT_INTENTS;
-pub use tag::{TagDescriptor, TagPlugin};
+pub use tag::TagDescriptor;
+pub(crate) use tag::DEFAULT_TAGS;
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
 pub(crate) use tag_type::{DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAG_TYPE_HANDLERS};
 pub use transform::{
