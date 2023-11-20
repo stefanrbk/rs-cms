@@ -8,8 +8,8 @@ use log::Level;
 
 use crate::{
     plugin::{
-        FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
-        PluginBase, TagTypeHandler, TransformFunc,
+        FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn, Plugin,
+        TagTypeHandler, TransformFunc,
     },
     sig, Result, MAX_CHANNELS, VERSION,
 };
@@ -52,7 +52,7 @@ impl Context {
         Some(self.0.user_data.clone()?)
     }
 
-    pub fn register_plugins(&self, plugins: &[&'static PluginBase]) -> Result<Self> {
+    pub fn register_plugins(&self, plugins: &[&'static Plugin]) -> Result<Self> {
         let mut inner: ContextInner = self.0.deref().clone();
 
         inner.register_plugins(plugins);
@@ -62,7 +62,7 @@ impl Context {
 }
 
 impl ContextInner {
-    pub fn register_plugins(&mut self, plugins: &[&'static PluginBase]) -> Result<()> {
+    pub fn register_plugins(&mut self, plugins: &[&'static Plugin]) -> Result<()> {
         for plugin in plugins {
             if plugin.magic != sig::plugin::MAGIC_NUMBER {
                 return err!(self, Error, UnknownExtension, "Unrecognized plugin"; str => "Unrecognized plugin");
@@ -83,52 +83,57 @@ impl ContextInner {
                 sig::plugin::INTERPOLATION => {
                     match plugin.inner.downcast_ref::<InterpFnFactory>() {
                         Some(interp) => self.register_interp_plugin(interp)?,
-                        None => return err!(str => "Interpolation plugin did not contain an InterpFnFactory"),
+                        None => {
+                            return err!(str => "Interpolation plugin did not contain an InterpFnFactory")
+                        }
                     }
-                },
-                sig::plugin::TAG_TYPE => {
-                    match plugin.inner.downcast_ref::<TagTypeHandler>() {
-                        Some(handler) => self.register_tag_type_plugin(handler)?,
-                        None => return err!(str => "Tag type plugin did not contain a TagTypeHandler"),
-                    }
+                }
+                sig::plugin::TAG_TYPE => match plugin.inner.downcast_ref::<TagTypeHandler>() {
+                    Some(handler) => self.register_tag_type_plugin(handler)?,
+                    None => return err!(str => "Tag type plugin did not contain a TagTypeHandler"),
                 },
                 sig::plugin::MULTI_PROCESS_ELEMENT => {
                     match plugin.inner.downcast_ref::<TagTypeHandler>() {
                         Some(handler) => self.register_tag_type_plugin(handler)?,
                         None => return err!(str => "MPE plugin did not contain a TagTypeHandler"),
                     }
-                },
-                sig::plugin::TAG => {
-                    match plugin.inner.downcast_ref::<Tag>() {
-                        Some(tag) => self.register_tag_plugin(tag)?,
-                        None => return err!(str => "Tag plugin did not contain a Tag"),
-                    }
+                }
+                sig::plugin::TAG => match plugin.inner.downcast_ref::<Tag>() {
+                    Some(tag) => self.register_tag_plugin(tag)?,
+                    None => return err!(str => "Tag plugin did not contain a Tag"),
                 },
                 sig::plugin::FORMATTERS => {
-                    match plugin.inner.downcast_ref::<(&FormatterInFactory, &FormatterOutFactory)>() {
+                    match plugin
+                        .inner
+                        .downcast_ref::<(&FormatterInFactory, &FormatterOutFactory)>()
+                    {
                         Some(fmt) => self.register_formatter_plugin(*fmt)?,
-                        None => return err!(str => "Formatter plugin did not contain a tuple of FormatterInFactory and FormatterOutFactory"),
+                        None => {
+                            return err!(str => "Formatter plugin did not contain a tuple of FormatterInFactory and FormatterOutFactory")
+                        }
+                    }
+                }
+                sig::plugin::OPTIMIZATION => match plugin.inner.downcast_ref::<OptimizationFn>() {
+                    Some(opt) => self.register_optimization_plugin(opt)?,
+                    None => {
+                        return err!(str => "Optimization plugin did not contain an OptimizationFn")
                     }
                 },
-                sig::plugin::OPTIMIZATION => {
-                    match plugin.inner.downcast_ref::<OptimizationFn>() {
-                        Some(opt) => self.register_optimization_plugin(opt)?,
-                        None => return err!(str => "Optimization plugin did not contain an OptimizationFn"),
-                    }
-                },
-                sig::plugin::TRANSFORM => {
-                    match plugin.inner.downcast_ref::<TransformFunc>() {
-                        Some(transform) => self.register_transform_plugin(transform)?,
-                        None => return err!(str => "Transform plugin did not contain a TransformFunc"),
-                    }
+                sig::plugin::TRANSFORM => match plugin.inner.downcast_ref::<TransformFunc>() {
+                    Some(transform) => self.register_transform_plugin(transform)?,
+                    None => return err!(str => "Transform plugin did not contain a TransformFunc"),
                 },
                 sig::plugin::PARALLELIZATION => {
                     match plugin.inner.downcast_ref::<Parallelization>() {
                         Some(parallel) => self.register_parallelization_plugin(parallel)?,
-                        None => return err!(str => "Parallelization plugin did not contain a Parallelization"),
+                        None => {
+                            return err!(str => "Parallelization plugin did not contain a Parallelization")
+                        }
                     }
-                },
-                _ => return err!(self, Error, UnknownExtension, "Unrecognized plugin type '{}'", plugin.r#type; str => "Unrecognized plugin type")
+                }
+                _ => {
+                    return err!(self, Error, UnknownExtension, "Unrecognized plugin type '{}'", plugin.r#type; str => "Unrecognized plugin type")
+                }
             }
         }
 
@@ -158,7 +163,10 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_formatter_plugin(&mut self, data: (&FormatterInFactory, &FormatterOutFactory)) -> Result<()> {
+    pub fn register_formatter_plugin(
+        &mut self,
+        data: (&FormatterInFactory, &FormatterOutFactory),
+    ) -> Result<()> {
         self.formatters_in.push(*data.0);
         self.formatters_out.push(*data.1);
 

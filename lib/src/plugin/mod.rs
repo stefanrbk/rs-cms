@@ -1,8 +1,8 @@
 use std::any::Any;
 
-use crate::{types::Signature, SemVer};
+use crate::{types::Signature, SemVer, state::ErrorHandlerLogFunction, sig};
 
-pub struct PluginBase {
+pub struct Plugin {
     pub magic: Signature,
     pub expected_version: SemVer,
     pub r#type: Signature,

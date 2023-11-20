@@ -2,7 +2,7 @@ use std::any::Any;
 
 use crate::{types::Signature, MAX_TYPES_IN_PLUGIN};
 
-use super::PluginBase;
+use super::Plugin;
 
 #[derive(Clone)]
 pub struct TagDescriptor {
@@ -13,7 +13,7 @@ pub struct TagDescriptor {
 }
 
 pub struct TagPlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub sig: Signature,
     pub desc: TagDescriptor,
 }

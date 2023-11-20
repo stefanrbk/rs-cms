@@ -1,8 +1,8 @@
 use std::any::Any;
 
-use crate::{types::Signature, Result, io::IoHandler};
+use crate::{io::IoHandler, types::Signature, Result};
 
-use super::PluginBase;
+use super::Plugin;
 
 #[derive(Clone)]
 pub struct TagTypeHandler {
@@ -16,6 +16,6 @@ pub struct TagTypeHandler {
 }
 
 pub struct TagTypePlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub handler: TagTypeHandler,
 }

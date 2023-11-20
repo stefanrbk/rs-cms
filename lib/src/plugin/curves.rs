@@ -1,4 +1,4 @@
-use super::PluginBase;
+use super::Plugin;
 
 pub type ParametricCurveEvaluator = fn(r#type: i32, params: &[f64], r: f64) -> f64;
 
@@ -9,7 +9,7 @@ pub struct CurveDef {
 }
 
 pub struct ParametricCurvePlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub curves: &'static [CurveDef],
     pub eval: ParametricCurveEvaluator,
 }

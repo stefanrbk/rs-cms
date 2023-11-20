@@ -5,7 +5,7 @@ use crate::{
     Result,
 };
 
-use super::PluginBase;
+use super::Plugin;
 
 pub type TransformFn =
     fn(cargo: &Transform, in_buf: &[u8], out_buf: &mut [u8], size: usize, stride: usize);
@@ -34,7 +34,7 @@ pub type Transform2Factory = fn(
 ) -> Result<Transform2FactoryResult>;
 
 pub struct TransformPlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub xform: TransformFunc,
 }
 

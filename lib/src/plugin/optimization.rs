@@ -3,7 +3,7 @@ use crate::{
     Result,
 };
 
-use super::PluginBase;
+use super::Plugin;
 
 pub type OptimizationFn = fn(
     lut: &mut Pipeline,
@@ -14,6 +14,6 @@ pub type OptimizationFn = fn(
 ) -> Result<()>;
 
 pub struct OptimizationPlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub r#fn: OptimizationFn,
 }

@@ -1,6 +1,6 @@
 use crate::types::Transform;
 
-use super::PluginBase;
+use super::Plugin;
 
 pub type FormatterIn16 =
     for<'a> fn(cargo: Transform, values: &'a mut [u16], buffer: &'a [u8], stride: u32) -> &'a [u8];
@@ -24,7 +24,7 @@ pub type FormatterInFactory = fn(r#type: u32, flags: u32) -> FormatterIn;
 pub type FormatterOutFactory = fn(r#type: u32, flags: u32) -> FormatterOut;
 
 pub struct FormatterPlugin {
-    pub base: PluginBase,
+    pub base: Plugin,
     pub in_factory: FormatterInFactory,
     pub out_factory: FormatterOutFactory,
 }
