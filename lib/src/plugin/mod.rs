@@ -28,11 +28,11 @@ impl Plugin {
     pub const fn create_formatter_plugin(
         data: &'static (&'static FormatterInFactory, &'static FormatterOutFactory),
     ) -> Self {
-        Self::new(sig::plugin::PARAMETRIC_CURVE, data)
+        Self::new(sig::plugin::FORMATTERS, data)
     }
 
     pub const fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
-        Self::new(sig::plugin::PARAMETRIC_CURVE, data)
+        Self::new(sig::plugin::TAG_TYPE, data)
     }
 
     pub const fn create_tag_plugin(data: &'static TagDescriptor) -> Self {
@@ -52,12 +52,12 @@ mod transform;
 
 pub(crate) use curves::DEFAULT_PARAMETRIC_CURVE;
 pub use curves::{CurveDef, ParametricCurveEvaluator};
+pub(crate) use formatter::DEFAULT_FORMATTER_FACTORIES;
 pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
 pub(crate) use interp::default_interpolators_factory;
-pub(crate) use formatter::DEFAULT_FORMATTER_FACTORIES;
 pub use interp::InterpFnFactory;
 pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use parallel::ParallelizationPlugin;
