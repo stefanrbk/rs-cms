@@ -86,6 +86,7 @@ pub use rendering_intent::IntentFn;
 pub(crate) use rendering_intent::DEFAULT_INTENTS;
 pub use tag::{TagDescriptor, TagPlugin};
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
+pub(crate) use tag_type::{DEFAULT_MPE_TYPE_HANDLERS, DEFAULT_TAG_TYPE_HANDLERS};
 pub use transform::{
     Transform2Factory, Transform2FactoryResult, Transform2Fn, TransformFactory,
     TransformFactoryResult, TransformFn, TransformFunc, TransformPlugin,
