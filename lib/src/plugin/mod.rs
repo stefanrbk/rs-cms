@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{sig, state::ParametricCurve, types::Signature, SemVer};
+use crate::{sig, state::{ParametricCurve, Intent}, types::Signature, SemVer};
 
 pub struct Plugin {
     pub(crate) magic: Signature,
@@ -37,6 +37,10 @@ impl Plugin {
 
     pub const fn create_tag_plugin(data: &'static TagDescriptor) -> Self {
         Self::new(sig::plugin::TAG, data)
+    }
+
+    pub const fn create_intents_plugin(data: &'static Intent) -> Self {
+        Self::new(sig::plugin::RENDERING_INTENT, data)
     }
 }
 
