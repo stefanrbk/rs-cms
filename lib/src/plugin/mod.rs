@@ -80,7 +80,8 @@ pub use formatter::{
 };
 pub(crate) use interp::default_interpolators_factory;
 pub use interp::InterpFnFactory;
-pub use optimization::{OptimizationFn, OptimizationPlugin};
+pub use optimization::OptimizationFn;
+pub(crate) use optimization::DEFAULT_OPTIMIZATIONS;
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
 pub(crate) use rendering_intent::DEFAULT_INTENTS;

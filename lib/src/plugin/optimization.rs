@@ -13,7 +13,4 @@ pub type OptimizationFn = fn(
     flags: &mut u32,
 ) -> Result<()>;
 
-pub struct OptimizationPlugin {
-    pub base: Plugin,
-    pub r#fn: OptimizationFn,
-}
+pub(crate) static DEFAULT_OPTIMIZATIONS: &[OptimizationFn] = &[];
