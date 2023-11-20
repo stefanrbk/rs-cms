@@ -31,11 +31,11 @@ impl Plugin {
         Self::new(sig::plugin::FORMATTERS, data)
     }
 
-    pub const fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
+    pub const fn create_tag_type_plugin(data: &'static &'static [TagTypeHandler]) -> Self {
         Self::new(sig::plugin::TAG_TYPE, data)
     }
 
-    pub const fn create_tag_plugin(data: &'static TagDescriptor) -> Self {
+    pub const fn create_tag_plugin(data: &'static &'static [TagDescriptor]) -> Self {
         Self::new(sig::plugin::TAG, data)
     }
 
