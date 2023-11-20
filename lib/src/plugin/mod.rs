@@ -34,6 +34,10 @@ impl Plugin {
     pub const fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
+
+    pub const fn create_tag_plugin(data: &'static TagDescriptor) -> Self {
+        Self::new(sig::plugin::TAG, data)
+    }
 }
 
 mod curves;
