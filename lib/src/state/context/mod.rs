@@ -106,9 +106,9 @@ impl ContextInner {
                 sig::plugin::FORMATTERS => {
                     match plugin
                         .inner
-                        .downcast_ref::<(&FormatterInFactory, &FormatterOutFactory)>()
+                        .downcast_ref::<&'static (&'static FormatterInFactory, &'static FormatterOutFactory)>()
                     {
-                        Some(fmt) => self.register_formatter_plugin(*fmt)?,
+                        Some(fmt) => self.register_formatter_plugin(**fmt)?,
                         None => {
                             return err!(str => "Formatter plugin did not contain a tuple of FormatterInFactory and FormatterOutFactory")
                         }
