@@ -9,7 +9,7 @@ pub struct Plugin {
     pub(crate) inner: &'static dyn Any,
 }
 impl Plugin {
-    fn new(r#type: Signature, inner: &'static dyn Any) -> Self {
+    const fn new(r#type: Signature, inner: &'static dyn Any) -> Self {
         Self {
             magic: sig::plugin::MAGIC_NUMBER,
             expected_version: SemVer::new(0, 1, 0),
@@ -17,21 +17,21 @@ impl Plugin {
             inner,
         }
     }
-    pub fn create_interpolation_plugin(factory: &'static InterpFnFactory) -> Self {
+    pub const fn create_interpolation_plugin(factory: &'static InterpFnFactory) -> Self {
         Self::new(sig::plugin::INTERPOLATION, factory)
     }
 
-    pub fn create_parametric_curve_plugin(data: &'static ParametricCurve) -> Self {
+    pub const fn create_parametric_curve_plugin(data: &'static ParametricCurve) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 
-    pub fn create_formatter_plugin(
+    pub const fn create_formatter_plugin(
         data: &'static (&'static FormatterInFactory, &'static FormatterOutFactory),
     ) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 
-    pub fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
+    pub const fn create_tag_type_plugin(data: &'static TagTypeHandler) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 }
@@ -53,6 +53,7 @@ pub use formatter::{
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
 pub(crate) use interp::default_interpolators_factory;
+pub(crate) use formatter::DEFAULT_FORMATTER_FACTORIES;
 pub use interp::InterpFnFactory;
 pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use parallel::ParallelizationPlugin;
