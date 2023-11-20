@@ -46,6 +46,10 @@ impl Plugin {
     pub const fn create_mpe_type_plugin(data: &'static &'static [TagTypeHandler]) -> Self {
         Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
     }
+
+    pub const fn create_optimization_plugin(data: &'static &'static [OptimizationFn]) -> Self {
+        Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
+    }
 }
 
 mod curves;
