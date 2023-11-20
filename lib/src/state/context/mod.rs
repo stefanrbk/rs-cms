@@ -55,7 +55,7 @@ impl Context {
     pub fn register_plugins(&self, plugins: &[&'static Plugin]) -> Result<Self> {
         let mut inner: ContextInner = self.0.deref().clone();
 
-        inner.register_plugins(plugins);
+        inner.register_plugins(plugins)?;
 
         Ok(Context(Arc::new(inner)))
     }
