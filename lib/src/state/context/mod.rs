@@ -132,7 +132,7 @@ impl ContextInner {
                         return err!(str => "Optimization plugin did not contain an OptimizationFn")
                     }
                 },
-                sig::plugin::TRANSFORM => match plugin.inner.downcast_ref::<TransformFunc>() {
+                sig::plugin::TRANSFORM => match plugin.inner.downcast_ref::<&[TransformFunc]>() {
                     Some(transform) => self.register_transform_plugin(transform)?,
                     None => return err!(str => "Transform plugin did not contain a TransformFunc"),
                 },
@@ -207,8 +207,10 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_transform_plugin(&mut self, data: &TransformFunc) -> Result<()> {
-        self.transforms.push(data.clone());
+    pub fn register_transform_plugin(&mut self, data: &'static [TransformFunc]) -> Result<()> {
+        for i in data {
+            self.transforms.push(i.clone());
+        }
 
         Ok(())
     }

@@ -50,6 +50,10 @@ impl Plugin {
     pub const fn create_optimization_plugin(data: &'static &'static [OptimizationFn]) -> Self {
         Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
     }
+
+    pub const fn create_transform_plugin(data: &'static &'static [TransformFunc]) -> Self {
+        Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
+    }
 }
 
 mod curves;
