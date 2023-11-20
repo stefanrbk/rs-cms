@@ -2,7 +2,7 @@ use std::any::Any;
 
 use crate::{
     sig,
-    state::{Intent, ParametricCurve},
+    state::{Intent, ParametricCurve, Parallelization},
     types::Signature,
     SemVer,
 };
@@ -58,6 +58,10 @@ impl Plugin {
 
     pub const fn create_transform_plugin(data: &'static &'static [TransformFunc]) -> Self {
         Self::new(sig::plugin::MULTI_PROCESS_ELEMENT, data)
+    }
+
+    pub const fn create_parallelization_plugin(data: &'static Parallelization) -> Self {
+        Self::new(sig::plugin::PARALLELIZATION, data)
     }
 }
 
