@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{types::Signature, SemVer, sig};
+use crate::{sig, types::Signature, SemVer};
 
 pub struct Plugin {
     pub magic: Signature,
@@ -33,7 +33,8 @@ pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
-pub use interp::{InterpFnFactory, InterpolationPlugin};
+pub(crate) use interp::default_interpolators_factory;
+pub use interp::InterpFnFactory;
 pub use optimization::{OptimizationFn, OptimizationPlugin};
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
