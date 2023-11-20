@@ -114,6 +114,18 @@ impl ContextInner {
                         }
                     }
                 }
+                sig::plugin::RENDERING_INTENT => match plugin.inner.downcast_ref::<&Intent>() {
+                    Some(intent) => self.register_rendering_intent_plugin(intent)?,
+                    None => {
+                        return err!(str => "Rendering intent plugin did not contain an Intent")
+                    }
+                },
+                sig::plugin::PARAMETRIC_CURVE => match plugin.inner.downcast_ref::<&ParametricCurve>() {
+                    Some(curve) => self.register_parametric_curve_plugin(curve)?,
+                    None => {
+                        return err!(str => "Parametric curve plugin did not contain a ParametricCurve")
+                    }
+                },
                 sig::plugin::OPTIMIZATION => match plugin.inner.downcast_ref::<OptimizationFn>() {
                     Some(opt) => self.register_optimization_plugin(opt)?,
                     None => {
@@ -170,6 +182,12 @@ impl ContextInner {
     ) -> Result<()> {
         self.formatters_in.push(*data.0);
         self.formatters_out.push(*data.1);
+
+        Ok(())
+    }
+
+    pub fn register_rendering_intent_plugin(&mut self, data: &Intent) -> Result<()> {
+        self.intents.push(data.clone());
 
         Ok(())
     }
