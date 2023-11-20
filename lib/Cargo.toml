@@ -3,6 +3,8 @@ name = "cms"
 authors = ["Stefan Kewatt <stefan.kewatt@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
+im-a-teapot = false #lol
+rust-version = "1.76.0"
 
 [lib]
 crate-type = ["rlib"]
