@@ -65,10 +65,11 @@ impl ContextInner {
     pub fn register_plugins(&mut self, plugins: &[&'static Plugin]) -> Result<()> {
         for plugin in plugins {
             if plugin.magic != sig::plugin::MAGIC_NUMBER {
-                return err!(self, Error, UnknownExtension, "Unrecognized plugin"; str => "Unrecognized plugin");
+                return err!(inner => self, Error, UnknownExtension, "Unrecognized plugin"; str => "Unrecognized plugin");
             }
             if plugin.expected_version > VERSION {
                 return err!(
+                    inner =>
                     self,
                     Error,
                     UnknownExtension,
@@ -132,7 +133,7 @@ impl ContextInner {
                     }
                 }
                 _ => {
-                    return err!(self, Error, UnknownExtension, "Unrecognized plugin type '{}'", plugin.r#type; str => "Unrecognized plugin type")
+                    return err!(inner => self, Error, UnknownExtension, "Unrecognized plugin type '{}'", plugin.r#type; str => "Unrecognized plugin type")
                 }
             }
         }

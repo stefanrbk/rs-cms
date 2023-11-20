@@ -21,6 +21,24 @@ macro_rules! err {
             Err($ss)
         }
     };
+    (inner => $c:expr, $l:ident, $e:ident, $s:tt; str => $ss:tt) => { {
+            Context(Arc::new($c.clone())).signal_error(
+                log::Level::$l,
+                crate::state::ErrorCode::$e,
+                &$s
+            );
+            Err($ss)
+        }
+    };
+    (inner => $c:expr, $l:ident, $e:ident, $s:tt, $($exprs:expr),*; str => $ss:tt) => { {
+            Context(Arc::new($c.clone())).signal_error(
+                log::Level::$l,
+                crate::state::ErrorCode::$e,
+                &format!($s, $($exprs),*)
+            );
+            Err($ss)
+        }
+    };
     (io => $t:ident, $s:tt) => {
         Err(std::io::Error::new(std::io::ErrorKind::$t, $s))
     };
