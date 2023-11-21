@@ -11,10 +11,10 @@ pub struct Plugin {
     pub(crate) magic: Signature,
     pub(crate) expected_version: SemVer,
     pub(crate) r#type: Signature,
-    pub(crate) inner: &'static dyn Any,
+    pub(crate) inner: &'static (dyn Any + Sync + Send),
 }
 impl Plugin {
-    const fn new(r#type: Signature, inner: &'static dyn Any) -> Self {
+    const fn new(r#type: Signature, inner: &'static (dyn Any + Sync + Send)) -> Self {
         Self {
             magic: sig::plugin::MAGIC_NUMBER,
             expected_version: SemVer::new(0, 1, 0),

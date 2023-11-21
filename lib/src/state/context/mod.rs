@@ -104,7 +104,7 @@ impl ContextInner {
             }
             match plugin.r#type {
                 sig::plugin::INTERPOLATION => {
-                    match plugin.inner.downcast_ref::<&InterpFnFactory>() {
+                    match plugin.inner.downcast_ref::<InterpFnFactory>() {
                         Some(interp) => self.register_interp_plugin(interp)?,
                         None => {
                             return err!(str => "Interpolation plugin did not contain an InterpFnFactory")
@@ -251,3 +251,6 @@ impl ContextInner {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test;
