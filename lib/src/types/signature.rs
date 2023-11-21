@@ -3,7 +3,11 @@ use std::fmt::Display;
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub struct Signature(pub u32);
 
-impl Signature {}
+impl Signature {
+    pub const fn from_str(value: &[u8; 4]) -> Self {
+        Signature(u32::from_ne_bytes(*value))
+    }
+}
 
 impl From<Signature> for u32 {
     fn from(value: Signature) -> Self {
@@ -14,6 +18,18 @@ impl From<Signature> for u32 {
 impl From<u32> for Signature {
     fn from(value: u32) -> Self {
         Signature(value)
+    }
+}
+
+impl From<Signature> for [u8; 4] {
+    fn from(value: Signature) -> Self {
+        value.0.to_ne_bytes()
+    }
+}
+
+impl From<[u8; 4]> for Signature {
+    fn from(value: [u8; 4]) -> Self {
+        Signature::from_str(&value)
     }
 }
 
