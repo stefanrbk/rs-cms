@@ -39,3 +39,23 @@ static TEST_TAG_TYPE: &[TagTypeHandler] = &[TagTypeHandler {
     read: |_, _, _, _| panic!("This function should never run!!!"),
 }];
 static TEST_TAG_TYPE_PLUGIN: Plugin = Plugin::create_tag_type_plugin(&TEST_TAG_TYPE);
+
+#[test]
+fn register_mpe_type_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_INTERP_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        let test = ctx.0.tag_types.last().unwrap();
+        if test.sig == TEST_TAG_TYPE[0].sig && test.read == TEST_TAG_TYPE[0].read {
+            return Ok(());
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_MPE_TYPE: &[TagTypeHandler] = &[TagTypeHandler {
+    sig: Signature::from_str(b"BUTT"),
+    read: |_, _, _, _| panic!("This function should never run!!!"),
+}];
+static TEST_MPE_TYPE_PLUGIN: Plugin = Plugin::create_mpe_type_plugin(&TEST_MPE_TYPE);
