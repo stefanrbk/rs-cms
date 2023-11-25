@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 
 use crate::{
-    plugin::{InterpFnFactory, Plugin, TagTypeHandler, TagDescriptor, tag},
+    plugin::{InterpFnFactory, Plugin, TagTypeHandler, TagDescriptor, tag, FormatterInFactory, FormatterOutFactory},
     state::Tag,
     types::Signature,
     Result, DEFAULT_CONTEXT,
@@ -86,3 +86,21 @@ static TEST_TAG: &[&Tag] = &[&Tag {
     },
 }];
 static TEST_TAG_PLUGIN: Plugin = Plugin::create_tag_plugin(&TEST_TAG);
+
+#[test]
+fn register_formatter_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_TAG_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        let test = ctx.0.tags.last().unwrap();
+        if test == TEST_TAG[0] {
+            return Ok(());
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_FORMATTER_IN: FormatterInFactory = |_, _| panic!("This function should never run!!!");
+static TEST_FORMATTER_OUT: FormatterOutFactory = |_, _| panic!("This function should never run!!!");
+static TEST_FORMATTER_PLUGIN: Plugin = Plugin::create_formatter_plugin(&(&TEST_FORMATTER_IN, &TEST_FORMATTER_OUT));
