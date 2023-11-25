@@ -11,10 +11,10 @@ pub struct Intent {
     pub r#fn: IntentFn,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Tag {
     pub sig: Signature,
-    pub desc: TagDescriptor,
+    pub desc: &'static TagDescriptor,
 }
 
 #[derive(Clone)]
