@@ -28,7 +28,7 @@ static TEST_INTERP_PLUGIN: Plugin = Plugin::create_interpolation_plugin(&TEST_IN
 
 #[test]
 fn register_tag_type_plugin_succeeds() -> Result<()> {
-    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_INTERP_PLUGIN]);
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_TAG_TYPE_PLUGIN]);
     if let Ok(ref ctx) = context {
         let test = ctx.0.tag_types.last().unwrap();
         if test.sig == TEST_TAG_TYPE[0].sig && test.read == TEST_TAG_TYPE[0].read {
@@ -48,10 +48,10 @@ static TEST_TAG_TYPE_PLUGIN: Plugin = Plugin::create_tag_type_plugin(&TEST_TAG_T
 
 #[test]
 fn register_mpe_type_plugin_succeeds() -> Result<()> {
-    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_INTERP_PLUGIN]);
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_MPE_TYPE_PLUGIN]);
     if let Ok(ref ctx) = context {
-        let test = ctx.0.tag_types.last().unwrap();
-        if test.sig == TEST_TAG_TYPE[0].sig && test.read == TEST_TAG_TYPE[0].read {
+        let test = ctx.0.mpe_types.last().unwrap();
+        if test == &TEST_MPE_TYPE[0] {
             return Ok(());
         }
     } else {
@@ -71,7 +71,7 @@ fn register_tag_plugin_succeeds() -> Result<()> {
     let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_TAG_PLUGIN]);
     if let Ok(ref ctx) = context {
         let test = ctx.0.tags.last().unwrap();
-        if test == TEST_TAG[0] {
+        if test == &TEST_TAG[0] {
             return Ok(());
         }
     } else {
@@ -80,7 +80,7 @@ fn register_tag_plugin_succeeds() -> Result<()> {
     Err("Failed to register plugin")
 }
 
-static TEST_TAG: &[&Tag] = &[&Tag {
+static TEST_TAG: &[Tag] = &[Tag {
     sig: Signature::from_str(b"BUTT"),
     desc: &tag::TagDescriptor::<[Signature; 1]> {
         elem_count: 2,
@@ -92,10 +92,12 @@ static TEST_TAG_PLUGIN: Plugin = Plugin::create_tag_plugin(&TEST_TAG);
 
 #[test]
 fn register_formatter_plugin_succeeds() -> Result<()> {
-    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_TAG_PLUGIN]);
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_FORMATTER_PLUGIN]);
     if let Ok(ref ctx) = context {
-        let test = ctx.0.tags.last().unwrap();
-        if test == TEST_TAG[0] {
+        let test_in = ctx.0.formatters_in.last().unwrap();
+        let test_out = ctx.0.formatters_out.last().unwrap();
+        if test_in == &TEST_FORMATTER_IN &&
+            test_out == &TEST_FORMATTER_OUT {
             return Ok(());
         }
     } else {

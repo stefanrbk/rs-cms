@@ -42,7 +42,7 @@ impl Plugin {
         Self::new(sig::plugin::TAG_TYPE, data)
     }
 
-    pub const fn create_tag_plugin(data: &'static &'static [&'static Tag]) -> Self {
+    pub const fn create_tag_plugin(data: &'static &'static [Tag]) -> Self {
         Self::new(sig::plugin::TAG, data)
     }
 

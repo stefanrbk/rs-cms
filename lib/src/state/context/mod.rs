@@ -117,7 +117,7 @@ impl ContextInner {
                 },
                 sig::plugin::MULTI_PROCESS_ELEMENT => {
                     match plugin.inner.downcast_ref::<&[TagTypeHandler]>() {
-                        Some(handler) => self.register_tag_type_plugin(handler)?,
+                        Some(handler) => self.register_mpe_type_plugin(handler)?,
                         None => return err!(str => "MPE plugin did not contain a TagTypeHandler"),
                     }
                 }
@@ -128,9 +128,9 @@ impl ContextInner {
                 sig::plugin::FORMATTERS => {
                     match plugin
                         .inner
-                        .downcast_ref::<&'static (&'static FormatterInFactory, &'static FormatterOutFactory)>()
+                        .downcast_ref::<(&'static FormatterInFactory, &'static FormatterOutFactory)>()
                     {
-                        Some(fmt) => self.register_formatter_plugin(**fmt)?,
+                        Some(fmt) => self.register_formatter_plugin(*fmt)?,
                         None => {
                             return err!(str => "Formatter plugin did not contain a tuple of FormatterInFactory and FormatterOutFactory")
                         }

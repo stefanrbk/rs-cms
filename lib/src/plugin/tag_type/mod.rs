@@ -4,7 +4,7 @@ use crate::{io::IoHandler, types::Signature, Result};
 
 use super::Plugin;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct TagTypeHandler {
     pub sig: Signature,
     pub read: fn(
