@@ -4,7 +4,7 @@ use crate::{
     Result, MAX_TYPES_IN_PLUGIN,
 };
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Intent {
     pub value: u32,
     pub desc: &'static str,
