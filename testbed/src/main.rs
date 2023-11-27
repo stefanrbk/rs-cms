@@ -1,8 +1,10 @@
 use std::process::exit;
 
 use clap::Parser;
-use log::{info, log, Level};
-use rs_cms::state::{default_error_handler_log_function, Context, ErrorCode};
+use log::{info, Level};
+use rs_cms::state::{
+    default_error_handler_log_function, Context, ErrorCode, ErrorHandlerLogFunction,
+};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -19,6 +21,8 @@ struct Cli {
     zoo: bool,
 }
 
+const FATAL_ERROR_QUIT: Option<ErrorHandlerLogFunction> = Some(die);
+
 pub fn main() {
     let args = Cli::parse();
 
@@ -27,7 +31,7 @@ pub fn main() {
     info!("rs-cms {} test bed", rs_cms::VERSION);
 
     info!("Installing error logger ...");
-    rs_cms::state::DEFAULT_CONTEXT.set_error_logger(Some(die));
+    rs_cms::state::DEFAULT_CONTEXT.set_error_logger(FATAL_ERROR_QUIT);
     info!("done.");
 }
 
