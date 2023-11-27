@@ -1,4 +1,5 @@
 use clap::Parser;
+use log::{info, Level};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -17,4 +18,8 @@ struct Cli {
 
 pub fn main() {
     let args = Cli::parse();
+
+    simple_logger::init_with_level(Level::Info).unwrap();
+
+    info!("rs-cms {} test bed", rs_cms::VERSION);
 }
