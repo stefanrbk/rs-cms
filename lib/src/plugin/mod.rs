@@ -28,7 +28,7 @@ impl Plugin {
         Self::new(sig::plugin::INTERPOLATION, factory)
     }
 
-    pub const fn create_parametric_curve_plugin(data: &'static ParametricCurve) -> Self {
+    pub const fn create_parametric_curve_plugin(data: &'static &'static [ParametricCurve]) -> Self {
         Self::new(sig::plugin::PARAMETRIC_CURVE, data)
     }
 
