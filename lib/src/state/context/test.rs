@@ -7,8 +7,10 @@ use crate::{
     },
     state::{Intent, Parallelization, ParametricCurve, Tag},
     types::Signature,
-    Result, DEFAULT_CONTEXT,
+    Result,
 };
+
+use super::DEFAULT_CONTEXT;
 
 #[test]
 fn register_interp_plugin_succeeds() -> Result<()> {

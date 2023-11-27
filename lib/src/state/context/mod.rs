@@ -5,6 +5,7 @@ use std::{
 };
 
 use log::Level;
+use once_cell::sync::Lazy;
 
 use crate::{
     plugin::{
@@ -18,6 +19,26 @@ use crate::{
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
+
+pub const DEFAULT_CONTEXT: Lazy<Context> = Lazy::new(|| Context(Arc::new(ContextInner {
+    alarm_codes: [
+        0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ],
+    adaptation_state: 1.0,
+    user_data: None,
+    error_logger: None,
+    interp_factory: default_interpolators_factory,
+    curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
+    formatters_in: vec![*DEFAULT_FORMATTER_FACTORIES.0],
+    formatters_out: vec![*DEFAULT_FORMATTER_FACTORIES.1],
+    tag_types: DEFAULT_TAG_TYPE_HANDLERS.to_vec(),
+    mpe_types: DEFAULT_MPE_TYPE_HANDLERS.to_vec(),
+    tags: DEFAULT_TAGS.to_vec(),
+    intents: DEFAULT_INTENTS.to_vec(),
+    optimizations: DEFAULT_OPTIMIZATIONS.to_vec(),
+    transforms: DEFAULT_TRANSFORM_FACTORIES.to_vec(),
+    parallel: None,
+})));
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
@@ -42,28 +63,6 @@ struct ContextInner {
 }
 
 impl Context {
-    pub fn new() -> Result<Self> {
-        Ok(Context(Arc::new(ContextInner {
-            alarm_codes: [
-                0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            ],
-            adaptation_state: 1.0,
-            user_data: None,
-            error_logger: None,
-            interp_factory: default_interpolators_factory,
-            curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
-            formatters_in: vec![*DEFAULT_FORMATTER_FACTORIES.0],
-            formatters_out: vec![*DEFAULT_FORMATTER_FACTORIES.1],
-            tag_types: DEFAULT_TAG_TYPE_HANDLERS.to_vec(),
-            mpe_types: DEFAULT_MPE_TYPE_HANDLERS.to_vec(),
-            tags: DEFAULT_TAGS.to_vec(),
-            intents: DEFAULT_INTENTS.to_vec(),
-            optimizations: DEFAULT_OPTIMIZATIONS.to_vec(),
-            transforms: DEFAULT_TRANSFORM_FACTORIES.to_vec(),
-            parallel: None,
-        })))
-    }
-
     pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
         if let Some(logger) = self.0.error_logger {
             logger(&self, level, error_code, text);
@@ -80,6 +79,12 @@ impl Context {
         inner.register_plugins(plugins)?;
 
         Ok(Context(Arc::new(inner)))
+    }
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        DEFAULT_CONTEXT.clone()
     }
 }
 
@@ -138,17 +143,18 @@ impl ContextInner {
                 }
                 sig::plugin::RENDERING_INTENT => match plugin.inner.downcast_ref::<&[Intent]>() {
                     Some(intent) => self.register_rendering_intent_plugin(intent)?,
-                    None => {
-                        return err!(str => "Rendering intent plugin did not contain an Intent")
-                    }
+                    None => return err!(str => "Rendering intent plugin did not contain an Intent"),
                 },
-                sig::plugin::PARAMETRIC_CURVE => match plugin.inner.downcast_ref::<&[ParametricCurve]>() {
-                    Some(curve) => self.register_parametric_curve_plugin(curve)?,
-                    None => {
-                        return err!(str => "Parametric curve plugin did not contain a ParametricCurve")
+                sig::plugin::PARAMETRIC_CURVE => {
+                    match plugin.inner.downcast_ref::<&[ParametricCurve]>() {
+                        Some(curve) => self.register_parametric_curve_plugin(curve)?,
+                        None => {
+                            return err!(str => "Parametric curve plugin did not contain a ParametricCurve")
+                        }
                     }
-                },
-                sig::plugin::OPTIMIZATION => match plugin.inner.downcast_ref::<&[OptimizationFn]>() {
+                }
+                sig::plugin::OPTIMIZATION => match plugin.inner.downcast_ref::<&[OptimizationFn]>()
+                {
                     Some(opt) => self.register_optimization_plugin(opt)?,
                     None => {
                         return err!(str => "Optimization plugin did not contain an OptimizationFn")
