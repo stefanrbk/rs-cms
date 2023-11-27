@@ -37,7 +37,7 @@ impl PartialEq for ParametricCurve {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Parallelization {
     pub max_workers: i32,
     pub worker_flags: u32,
