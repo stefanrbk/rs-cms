@@ -46,10 +46,8 @@ pub type ErrorHandlerLogFunction =
 pub fn default_error_handler_log_function(
     _context_id: &Context,
     level: Level,
-    error_code: Option<ErrorCode>,
-    text: &'static str,
+    error_code: ErrorCode,
+    text: &str,
 ) {
-    if let Some(error_code) = error_code {
-        log!(level, "[{}] => {}", error_code.unwrap(), text)
-    }
+    log!(level, "[{}] => {}", error_code.unwrap(), text)
 }
