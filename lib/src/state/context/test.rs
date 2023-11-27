@@ -152,4 +152,4 @@ static TEST_CURVES: &[ParametricCurve] = &[ParametricCurve {
     eval: |_, _, _| panic!("This function should never run!!!"),
 }];
 static TEST_PARAMETRIC_CURVE_PLUGIN: Plugin =
-    Plugin::create_intents_plugin(&TEST_RENDERING_INTENTS);
+    Plugin::create_parametric_curve_plugin(&TEST_CURVES);
