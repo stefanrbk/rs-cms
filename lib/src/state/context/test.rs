@@ -5,7 +5,7 @@ use crate::{
         tag, CurveDef, FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
         Plugin, TagDescriptor, TagTypeHandler, TransformFunc,
     },
-    state::{Intent, ParametricCurve, Tag},
+    state::{Intent, Parallelization, ParametricCurve, Tag},
     types::Signature,
     Result, DEFAULT_CONTEXT,
 };
@@ -191,3 +191,26 @@ static TEST_TRANSFORMS: &[TransformFunc] = &[TransformFunc::Factory(|_, _, _, _|
     panic!("This function should never run!!!")
 })];
 static TEST_TRANSFORM_PLUGIN: Plugin = Plugin::create_transform_plugin(&TEST_TRANSFORMS);
+
+#[test]
+fn register_parallelization_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_PARALLELIZATION_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        if let Some(ref test) = ctx.0.parallel {
+            if test == &TEST_PARALLELIZATION {
+                return Ok(());
+            }
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_PARALLELIZATION: Parallelization = Parallelization {
+    max_workers: 7,
+    worker_flags: 3,
+    sched: |_, _, _, _, _, _| panic!("This function should never run!!!"),
+};
+static TEST_PARALLELIZATION_PLUGIN: Plugin =
+    Plugin::create_parallelization_plugin(&TEST_PARALLELIZATION);
