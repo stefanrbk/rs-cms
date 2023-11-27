@@ -111,6 +111,20 @@ impl Context {
     pub fn set_error_logger(&self, r#fn: Option<ErrorHandlerLogFunction>) {
         unsafe_block!("" => *(&mut *self.0.error_logger.get()) = r#fn)
     }
+
+    pub fn get_supported_intents(&self, max: usize, results: &mut Vec<(u32, &str)>) -> usize {
+        let ctx = &self.0.intents;
+        let mut num_intents = 0usize;
+
+        for intent in ctx {
+            if num_intents < max {
+                results.push((intent.value, intent.desc));
+            }
+            num_intents += 1;
+        }
+
+        num_intents
+    }
 }
 
 impl Default for Context {
