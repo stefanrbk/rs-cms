@@ -17,10 +17,24 @@ pub struct Tag {
     pub desc: &'static TagDescriptor,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq)]
 pub struct ParametricCurve {
     pub curves: &'static [CurveDef],
     pub eval: ParametricCurveEvaluator,
+}
+
+impl PartialEq for ParametricCurve {
+    fn eq(&self, other: &Self) -> bool {
+        if self.curves.len() == other.curves.len() && self.eval == other.eval {
+            for i in 0..self.curves.len() {
+                if self.curves[i] != other.curves[i] {
+                    return false;
+                }
+            }
+            return true;
+        }
+        false
+    }
 }
 
 #[derive(Clone)]
