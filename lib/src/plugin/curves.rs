@@ -25,7 +25,7 @@ pub(crate) fn default_parametric_curve_evaluator(_type: i32, _params: &[f64], _r
     0.0
 }
 
-pub(crate) static DEFAULT_CURVE_DEFS: [CurveDef; 10] = [
+pub(crate) static DEFAULT_CURVE_DEFS: &[CurveDef] = &[
     CurveDef {
         fn_type: 1,
         param_count: 1,
