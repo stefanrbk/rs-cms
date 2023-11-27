@@ -1,5 +1,6 @@
 use std::{
     any::Any,
+    cell::UnsafeCell,
     ops::Deref,
     sync::{Arc, Mutex},
 };
@@ -20,35 +21,36 @@ use crate::{
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
 
-pub const DEFAULT_CONTEXT: Lazy<Context> = Lazy::new(|| Context(Arc::new(ContextInner {
-    alarm_codes: [
-        0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ],
-    adaptation_state: 1.0,
-    user_data: None,
-    error_logger: None,
-    interp_factory: default_interpolators_factory,
-    curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
-    formatters_in: vec![*DEFAULT_FORMATTER_FACTORIES.0],
-    formatters_out: vec![*DEFAULT_FORMATTER_FACTORIES.1],
-    tag_types: DEFAULT_TAG_TYPE_HANDLERS.to_vec(),
-    mpe_types: DEFAULT_MPE_TYPE_HANDLERS.to_vec(),
-    tags: DEFAULT_TAGS.to_vec(),
-    intents: DEFAULT_INTENTS.to_vec(),
-    optimizations: DEFAULT_OPTIMIZATIONS.to_vec(),
-    transforms: DEFAULT_TRANSFORM_FACTORIES.to_vec(),
-    parallel: None,
-})));
+pub const DEFAULT_CONTEXT: Lazy<Context> = Lazy::new(|| {
+    Context(Arc::new(ContextInner {
+        alarm_codes: [
+            0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ],
+        adaptation_state: 1.0,
+        user_data: None,
+        error_logger: UnsafeCell::new(None),
+        interp_factory: default_interpolators_factory,
+        curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
+        formatters_in: vec![*DEFAULT_FORMATTER_FACTORIES.0],
+        formatters_out: vec![*DEFAULT_FORMATTER_FACTORIES.1],
+        tag_types: DEFAULT_TAG_TYPE_HANDLERS.to_vec(),
+        mpe_types: DEFAULT_MPE_TYPE_HANDLERS.to_vec(),
+        tags: DEFAULT_TAGS.to_vec(),
+        intents: DEFAULT_INTENTS.to_vec(),
+        optimizations: DEFAULT_OPTIMIZATIONS.to_vec(),
+        transforms: DEFAULT_TRANSFORM_FACTORIES.to_vec(),
+        parallel: None,
+    }))
+});
 
 #[derive(Clone)]
 pub struct Context(Arc<ContextInner>);
 
-#[derive(Clone)]
 struct ContextInner {
     alarm_codes: [u16; MAX_CHANNELS],
     adaptation_state: f64,
     user_data: Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>>,
-    error_logger: Option<ErrorHandlerLogFunction>,
+    error_logger: UnsafeCell<Option<ErrorHandlerLogFunction>>,
     interp_factory: InterpFnFactory,
     curves: Vec<ParametricCurve>,
     formatters_in: Vec<FormatterInFactory>,
@@ -62,9 +64,34 @@ struct ContextInner {
     parallel: Option<Parallelization>,
 }
 
+impl Clone for ContextInner {
+    fn clone(&self) -> Self {
+        Self {
+            alarm_codes: self.alarm_codes.clone(),
+            adaptation_state: self.adaptation_state.clone(),
+            user_data: self.user_data.clone(),
+            error_logger: UnsafeCell::new(
+                unsafe_block!("Access error_logger for cloning" => (&*self.error_logger.get()).clone()),
+            ),
+            interp_factory: self.interp_factory.clone(),
+            curves: self.curves.clone(),
+            formatters_in: self.formatters_in.clone(),
+            formatters_out: self.formatters_out.clone(),
+            tag_types: self.tag_types.clone(),
+            mpe_types: self.mpe_types.clone(),
+            tags: self.tags.clone(),
+            intents: self.intents.clone(),
+            optimizations: self.optimizations.clone(),
+            transforms: self.transforms.clone(),
+            parallel: self.parallel.clone(),
+        }
+    }
+}
+
 impl Context {
     pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
-        if let Some(logger) = self.0.error_logger {
+        if let Some(logger) = unsafe_block!("Get the error_logger within the UnsafeCell" => &*self.0.error_logger.get())
+        {
             logger(&self, level, error_code, text);
         }
     }
@@ -79,6 +106,10 @@ impl Context {
         inner.register_plugins(plugins)?;
 
         Ok(Context(Arc::new(inner)))
+    }
+
+    pub fn set_error_logger(&self, r#fn: Option<ErrorHandlerLogFunction>) {
+        unsafe_block!("" => *(&mut *self.0.error_logger.get()) = r#fn)
     }
 }
 
