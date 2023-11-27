@@ -3,9 +3,9 @@ use once_cell::sync::Lazy;
 use crate::{
     plugin::{
         tag, FormatterInFactory, FormatterOutFactory, InterpFnFactory, Plugin, TagDescriptor,
-        TagTypeHandler,
+        TagTypeHandler, CurveDef,
     },
-    state::{Intent, Tag},
+    state::{Intent, Tag, ParametricCurve},
     types::Signature,
     Result, DEFAULT_CONTEXT,
 };
@@ -131,4 +131,25 @@ static TEST_RENDERING_INTENTS: &[Intent] = &[Intent {
     r#fn: |_, _, _, _, _, _, _| panic!("This function should never run!!!"),
 }];
 static TEST_RENDERING_INTENT_PLUGIN: Plugin =
+    Plugin::create_intents_plugin(&TEST_RENDERING_INTENTS);
+
+#[test]
+fn register_parametric_curve_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_PARAMETRIC_CURVE_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        let test = ctx.0.curves.last().unwrap();
+        if test == &TEST_CURVES[0] {
+            return Ok(());
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_CURVES: &[ParametricCurve] = &[ParametricCurve {
+    curves: &[CurveDef { fn_type: 11, param_count: 9 }],
+    eval: |_, _, _| panic!("This function should never run!!!"),
+}];
+static TEST_PARAMETRIC_CURVE_PLUGIN: Plugin =
     Plugin::create_intents_plugin(&TEST_RENDERING_INTENTS);
