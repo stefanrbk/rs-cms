@@ -14,4 +14,4 @@ pub type IntentFn = fn(
     flags: u32,
 ) -> Result<Pipeline>;
 
-pub(crate) static DEFAULT_INTENTS: &[Intent] = &[];
+pub(crate) const DEFAULT_INTENTS: &[Intent] = &[];

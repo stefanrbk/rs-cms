@@ -89,7 +89,7 @@ pub(crate) fn default_output_formatter_factory(_type: u32, _flags: u32) -> Forma
     todo!()
 }
 
-pub(crate) static DEFAULT_FORMATTER_FACTORIES: (
+pub(crate) const DEFAULT_FORMATTER_FACTORIES: (
     &'static FormatterInFactory,
     &'static FormatterOutFactory,
 ) = (

@@ -20,5 +20,5 @@ pub struct TagTypePlugin {
     pub handler: TagTypeHandler,
 }
 
-pub(crate) static DEFAULT_TAG_TYPE_HANDLERS: &[TagTypeHandler] = &[];
-pub(crate) static DEFAULT_MPE_TYPE_HANDLERS: &[TagTypeHandler] = &[];
+pub(crate) const DEFAULT_TAG_TYPE_HANDLERS: &[TagTypeHandler] = &[];
+pub(crate) const DEFAULT_MPE_TYPE_HANDLERS: &[TagTypeHandler] = &[];

@@ -13,4 +13,4 @@ pub type OptimizationFn = fn(
     flags: &mut u32,
 ) -> Result<()>;
 
-pub(crate) static DEFAULT_OPTIMIZATIONS: &[OptimizationFn] = &[];
+pub(crate) const DEFAULT_OPTIMIZATIONS: &[OptimizationFn] = &[];

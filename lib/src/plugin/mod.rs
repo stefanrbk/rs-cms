@@ -2,12 +2,10 @@ use std::any::Any;
 
 use crate::{
     sig,
-    state::{Intent, ParametricCurve, Parallelization, Tag},
+    state::{Intent, Parallelization, ParametricCurve, Tag},
     types::Signature,
     SemVer,
 };
-
-pub type TagDescriptor = tag::TagDescriptor<[Signature]>;
 
 pub struct Plugin {
     pub(crate) magic: Signature,
@@ -73,7 +71,7 @@ mod interp;
 mod optimization;
 mod parallel;
 mod rendering_intent;
-pub mod tag;
+mod tag;
 mod tag_type;
 mod transform;
 
@@ -86,6 +84,7 @@ pub use interp::InterpFnFactory;
 pub use optimization::OptimizationFn;
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;
+pub use tag::TagDescriptor;
 pub use tag_type::{TagTypeHandler, TagTypePlugin};
 pub use transform::{
     Transform2Factory, Transform2FactoryResult, Transform2Fn, TransformFactory,

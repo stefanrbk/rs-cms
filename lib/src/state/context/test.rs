@@ -2,8 +2,8 @@ use once_cell::sync::Lazy;
 
 use crate::{
     plugin::{
-        tag, CurveDef, FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
-        Plugin, TagDescriptor, TagTypeHandler, TransformFunc,
+        CurveDef, FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn, Plugin,
+        TagDescriptor, TagTypeHandler, TransformFunc,
     },
     state::{Intent, Parallelization, ParametricCurve, Tag},
     types::Signature,
@@ -82,10 +82,10 @@ fn register_tag_plugin_succeeds() -> Result<()> {
 
 static TEST_TAG: &[Tag] = &[Tag {
     sig: Signature::from_str(b"BUTT"),
-    desc: &tag::TagDescriptor::<[Signature; 1]> {
+    desc: &TagDescriptor {
         elem_count: 2,
         decide_type: None,
-        supported_types: [Signature::from_str(b"BUTT")],
+        supported_types: &[Signature::from_str(b"BUTT")],
     },
 }];
 static TEST_TAG_PLUGIN: Plugin = Plugin::create_tag_plugin(&TEST_TAG);

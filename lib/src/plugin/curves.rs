@@ -16,7 +16,7 @@ pub struct ParametricCurvePlugin {
     pub eval: ParametricCurveEvaluator,
 }
 
-pub(crate) static DEFAULT_PARAMETRIC_CURVE: ParametricCurve = ParametricCurve {
+pub(crate) const DEFAULT_PARAMETRIC_CURVE: ParametricCurve = ParametricCurve {
     curves: &DEFAULT_CURVE_DEFS,
     eval: default_parametric_curve_evaluator,
 };
@@ -25,7 +25,7 @@ pub(crate) fn default_parametric_curve_evaluator(_type: i32, _params: &[f64], _r
     0.0
 }
 
-pub(crate) static DEFAULT_CURVE_DEFS: &[CurveDef] = &[
+pub(crate) const DEFAULT_CURVE_DEFS: &[CurveDef] = &[
     CurveDef {
         fn_type: 1,
         param_count: 1,

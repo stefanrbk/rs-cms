@@ -54,4 +54,4 @@ pub struct Transform2FactoryResult {
     pub data: Option<Box<dyn Any>>,
 }
 
-pub(crate) static DEFAULT_TRANSFORM_FACTORIES: &[TransformFunc] = &[];
+pub(crate) const DEFAULT_TRANSFORM_FACTORIES: &[TransformFunc] = &[];
