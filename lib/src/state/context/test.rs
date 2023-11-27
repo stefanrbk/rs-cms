@@ -2,10 +2,10 @@ use once_cell::sync::Lazy;
 
 use crate::{
     plugin::{
-        tag, FormatterInFactory, FormatterOutFactory, InterpFnFactory, Plugin, TagDescriptor,
-        TagTypeHandler, CurveDef,
+        tag, CurveDef, FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
+        Plugin, TagDescriptor, TagTypeHandler,
     },
-    state::{Intent, Tag, ParametricCurve},
+    state::{Intent, ParametricCurve, Tag},
     types::Signature,
     Result, DEFAULT_CONTEXT,
 };
@@ -96,8 +96,7 @@ fn register_formatter_plugin_succeeds() -> Result<()> {
     if let Ok(ref ctx) = context {
         let test_in = ctx.0.formatters_in.last().unwrap();
         let test_out = ctx.0.formatters_out.last().unwrap();
-        if test_in == &TEST_FORMATTER_IN &&
-            test_out == &TEST_FORMATTER_OUT {
+        if test_in == &TEST_FORMATTER_IN && test_out == &TEST_FORMATTER_OUT {
             return Ok(());
         }
     } else {
@@ -148,8 +147,28 @@ fn register_parametric_curve_plugin_succeeds() -> Result<()> {
 }
 
 static TEST_CURVES: &[ParametricCurve] = &[ParametricCurve {
-    curves: &[CurveDef { fn_type: 11, param_count: 9 }],
+    curves: &[CurveDef {
+        fn_type: 11,
+        param_count: 9,
+    }],
     eval: |_, _, _| panic!("This function should never run!!!"),
 }];
-static TEST_PARAMETRIC_CURVE_PLUGIN: Plugin =
-    Plugin::create_parametric_curve_plugin(&TEST_CURVES);
+static TEST_PARAMETRIC_CURVE_PLUGIN: Plugin = Plugin::create_parametric_curve_plugin(&TEST_CURVES);
+
+#[test]
+fn register_optimization_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_OPTIMIZATION_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        let test = ctx.0.optimizations.last().unwrap();
+        if test == &TEST_OPTIMIZATIONS[0] {
+            return Ok(());
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_OPTIMIZATIONS: &[OptimizationFn] =
+    &[|_, _, _, _, _| panic!("This function should never run!!!")];
+static TEST_OPTIMIZATION_PLUGIN: Plugin = Plugin::create_optimization_plugin(&TEST_OPTIMIZATIONS);
