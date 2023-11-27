@@ -4,7 +4,7 @@ use super::Plugin;
 
 pub type ParametricCurveEvaluator = fn(r#type: i32, params: &[f64], r: f64) -> f64;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct CurveDef {
     pub fn_type: u32,
     pub param_count: usize,
