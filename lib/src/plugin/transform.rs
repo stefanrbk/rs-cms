@@ -38,7 +38,7 @@ pub struct TransformPlugin {
     pub xform: TransformFunc,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum TransformFunc {
     Factory(Transform2Factory),
     OldFactory(TransformFactory),
