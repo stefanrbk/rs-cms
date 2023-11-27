@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 use crate::{
     plugin::{
         tag, CurveDef, FormatterInFactory, FormatterOutFactory, InterpFnFactory, OptimizationFn,
-        Plugin, TagDescriptor, TagTypeHandler,
+        Plugin, TagDescriptor, TagTypeHandler, TransformFunc,
     },
     state::{Intent, ParametricCurve, Tag},
     types::Signature,
@@ -172,3 +172,22 @@ fn register_optimization_plugin_succeeds() -> Result<()> {
 static TEST_OPTIMIZATIONS: &[OptimizationFn] =
     &[|_, _, _, _, _| panic!("This function should never run!!!")];
 static TEST_OPTIMIZATION_PLUGIN: Plugin = Plugin::create_optimization_plugin(&TEST_OPTIMIZATIONS);
+
+#[test]
+fn register_transform_plugin_succeeds() -> Result<()> {
+    let context = DEFAULT_CONTEXT.register_plugins(&[&TEST_TRANSFORM_PLUGIN]);
+    if let Ok(ref ctx) = context {
+        let test = ctx.0.transforms.last().unwrap();
+        if test == &TEST_TRANSFORMS[0] {
+            return Ok(());
+        }
+    } else {
+        return Err(context.err().unwrap());
+    }
+    Err("Failed to register plugin")
+}
+
+static TEST_TRANSFORMS: &[TransformFunc] = &[TransformFunc::Factory(|_, _, _, _| {
+    panic!("This function should never run!!!")
+})];
+static TEST_TRANSFORM_PLUGIN: Plugin = Plugin::create_transform_plugin(&TEST_TRANSFORMS);
