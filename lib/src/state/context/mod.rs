@@ -142,7 +142,7 @@ impl ContextInner {
                         return err!(str => "Rendering intent plugin did not contain an Intent")
                     }
                 },
-                sig::plugin::PARAMETRIC_CURVE => match plugin.inner.downcast_ref::<&ParametricCurve>() {
+                sig::plugin::PARAMETRIC_CURVE => match plugin.inner.downcast_ref::<&[ParametricCurve]>() {
                     Some(curve) => self.register_parametric_curve_plugin(curve)?,
                     None => {
                         return err!(str => "Parametric curve plugin did not contain a ParametricCurve")
@@ -223,8 +223,10 @@ impl ContextInner {
         Ok(())
     }
 
-    pub fn register_parametric_curve_plugin(&mut self, data: &ParametricCurve) -> Result<()> {
-        self.curves.push(data.clone());
+    pub fn register_parametric_curve_plugin(&mut self, data: &[ParametricCurve]) -> Result<()> {
+        for i in data {
+            self.curves.push(i.clone());
+        }
 
         Ok(())
     }
