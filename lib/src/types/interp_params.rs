@@ -1,8 +1,9 @@
 use log::Level;
 
 use crate::{
+    fixed_rest_to_int, fixed_to_int,
     state::{Context, ErrorCode},
-    Result, MAX_INPUT_DIMENSIONS,
+    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS,
 };
 
 #[derive(Clone)]
@@ -79,7 +80,14 @@ impl<T: Copy> InterpParams<T> {
         flags: u32,
     ) -> Result<Self> {
         let n_samples = [n_samples; MAX_INPUT_DIMENSIONS];
-        Self::compute_ex(context_id, &n_samples, input_chan, output_chan, table, flags)
+        Self::compute_ex(
+            context_id,
+            &n_samples,
+            input_chan,
+            output_chan,
+            table,
+            flags,
+        )
     }
 }
 
@@ -109,6 +117,139 @@ impl InterpFunction {
         match self {
             Self::U16(x) => f(x),
             Self::F32(_) => false,
+        }
+    }
+}
+
+#[inline]
+fn linear_interp(a: S15Fixed16Number, l: S15Fixed16Number, h: S15Fixed16Number) -> u16 {
+    let dif = (h - l) as u32 * a as u32 + 0x8000;
+    let dif = (dif >> 16) + l as u32;
+    dif as u16
+}
+
+fn lin_lerp_1d(value: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
+    let lut_table = &p.table;
+
+    // if last value or just one point
+    if value[0] == 0xffff || p.domain[0] == 0 {
+        output[0] = lut_table[p.domain[0]];
+    } else {
+        let val3 = p.domain[0] as i32 * value[0] as i32;
+        let val3 = to_fixed_domain(val3);
+
+        let cell0 = fixed_to_int(val3);
+        let rest = fixed_rest_to_int(val3);
+
+        let y0 = lut_table[cell0 as usize];
+        let y1 = lut_table[cell0 as usize + 1];
+
+        output[0] = linear_interp(rest, y0 as i32, y1 as i32);
+    }
+}
+
+#[inline]
+fn fclamp(v: f32) -> f32 {
+    if (v < 1.0e-9f32) || v.is_nan() {
+        0f32
+    } else {
+        if v > 1f32 {
+            1f32
+        } else {
+            v
+        }
+    }
+}
+
+#[inline]
+fn linear_interp_f32(a: f32, l: f32, h: f32) -> f32 {
+    l + (h - l) * a
+}
+
+fn lin_lerp_1d_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let lut_table = &p.table;
+
+    let val2 = fclamp(value[0]);
+
+    // if last value...
+    if val2 == 1f32 || p.domain[0] == 0 {
+        output[0] = lut_table[p.domain[0]];
+    } else {
+        let val2 = p.domain[0] as f32 * val2;
+
+        let cell0 = val2.floor() as i32;
+        let cell1 = val2.ceil() as i32;
+
+        // Rest is 16 LSB bits
+        let rest = val2 - cell0 as f32;
+
+        let y0 = lut_table[cell0 as usize];
+        let y1 = lut_table[cell1 as usize];
+
+        output[0] = linear_interp_f32(rest, y0, y1);
+    }
+}
+
+fn eval_1_input(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
+    let lut_table = &p16.table;
+
+    // if last value...
+    if input[0] == 0xffff || p16.domain[0] == 0 {
+        let y0 = p16.domain[0] * p16.opta[0];
+
+        for out_chan in 0..p16.n_outputs {
+            output[out_chan] = lut_table[y0 + out_chan];
+        }
+    } else {
+        let v = input[0] as i32 * p16.domain[0] as i32;
+        let fk = to_fixed_domain(v);
+
+        let k0 = fixed_to_int(fk);
+        let rk = fixed_rest_to_int(fk) as u16;
+
+        let k1 = k0 + if input[0] != 0xffff { 1 } else { 0 };
+
+        let K0 = p16.opta[0] as i32 * k0;
+        let K1 = p16.opta[0] as i32 * k1;
+
+        for out_chan in 0..p16.n_outputs {
+            output[out_chan] = linear_interp(
+                rk as i32,
+                lut_table[K0 as usize + out_chan] as i32,
+                lut_table[K1 as usize + out_chan] as i32,
+            );
+        }
+    }
+}
+fn eval_1_input_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let lut_table = &p.table;
+
+    let val2 = fclamp(value[0]);
+
+    // if last value...
+    if val2 == 1f32 || p.domain[0] == 0 {
+        let start = p.domain[0] * p.opta[0];
+
+        for out_chan in 0..p.n_outputs {
+            output[out_chan] = lut_table[start + out_chan];
+        }
+    } else {
+        let val2 = p.domain[0] as f32 * val2;
+
+        let cell0 = val2.floor() as i32;
+        let cell1 = val2.ceil() as i32;
+
+        // Rest is 16 LSB bits
+        let rest = val2 - cell0 as f32;
+
+        let cell0 = cell0 * p.opta[0] as i32;
+        let cell1 = cell1 * p.opta[0] as i32;
+
+        for out_chan in 0..p.n_outputs {
+            let y0 = lut_table[cell0 as usize + out_chan];
+            let y1 = lut_table[cell1 as usize + out_chan];
+
+            output[0] = linear_interp_f32(rest, y0, y1);
         }
     }
 }
