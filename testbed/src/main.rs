@@ -3,15 +3,15 @@ use std::{
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
         Mutex,
-    },
+    }, mem::size_of,
 };
 
 use clap::Parser;
 use log::{error, info, Level};
-use rs_cms::state::{
+use rs_cms::{state::{
     default_error_handler_log_function, Context, ErrorCode, ErrorHandlerLogFunction,
     DEFAULT_CONTEXT,
-};
+}, types::Signature, U8Fixed8Number, S15Fixed16Number, U16Fixed16Number};
 
 static REASON_TO_FAIL: Mutex<String> = Mutex::new(String::new());
 static SUBTEST: Mutex<String> = Mutex::new(String::new());
@@ -50,6 +50,7 @@ pub fn main() {
 
     print_supported_intents();
 
+    check("Base types", check_base_types);
     check("Quick floor", check_quick_floor);
     check("Quick floor word", check_quick_floor_word);
 }
@@ -86,6 +87,52 @@ fn print_supported_intents() {
     for i in 0..n {
         info!("\t{} - {}", intents[i].0, intents[i].1);
     }
+}
+
+fn check_base_types() -> bool {
+    if size_of::<u8>() != 1 {
+        return false;
+    }
+    if size_of::<i8>() != 1 {
+        return false;
+    }
+    if size_of::<u16>() != 2 {
+        return false;
+    }
+    if size_of::<i16>() != 2 {
+        return false;
+    }
+    if size_of::<u32>() != 4 {
+        return false;
+    }
+    if size_of::<i32>() != 4 {
+        return false;
+    }
+    if size_of::<u64>() != 8 {
+        return false;
+    }
+    if size_of::<i64>() != 8 {
+        return false;
+    }
+    if size_of::<f32>() != 4 {
+        return false;
+    }
+    if size_of::<f64>() != 8 {
+        return false;
+    }
+    if size_of::<Signature>() != 4 {
+        return false;
+    }
+    if size_of::<U8Fixed8Number>() != 2 {
+        return false;
+    }
+    if size_of::<S15Fixed16Number>() != 4 {
+        return false;
+    }
+    if size_of::<U16Fixed16Number>() != 4 {
+        return false;
+    }
+    true
 }
 
 fn check_quick_floor() -> bool {
