@@ -70,6 +70,17 @@ impl<T: Copy> InterpParams<T> {
             interpolation: (context_id.get_interp_factory())(input_chan, output_chan, flags)?,
         })
     }
+    pub fn compute(
+        context_id: &Context,
+        n_samples: usize,
+        input_chan: usize,
+        output_chan: usize,
+        table: Box<[T]>,
+        flags: u32,
+    ) -> Result<Self> {
+        let n_samples = [n_samples; MAX_INPUT_DIMENSIONS];
+        Self::compute_ex(context_id, &n_samples, input_chan, output_chan, table, flags)
+    }
 }
 
 pub type InterpFn<T> =
