@@ -15,10 +15,12 @@ use rs_cms::{
         DEFAULT_CONTEXT,
     },
     types::Signature,
-    S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
+    Result, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
 };
 
 use helpers::*;
+
+type TestFn = fn() -> Result<()>;
 
 static REASON_TO_FAIL: Mutex<String> = Mutex::new(String::new());
 static SUBTEST: Mutex<String> = Mutex::new(String::new());
@@ -80,7 +82,7 @@ fn check(title: &str, test: fn() -> bool) {
 fn die(context_id: &Context, level: Level, error_code: ErrorCode, text: &str) {
     default_error_handler_log_function(context_id, level, error_code, text);
 
-    if level >= Level::Error {
+    if level <= Level::Error {
         exit(1);
     }
 }
