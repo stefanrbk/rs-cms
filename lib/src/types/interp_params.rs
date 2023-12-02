@@ -1,4 +1,9 @@
-use crate::{state::Context, MAX_INPUT_DIMENSIONS, Result};
+use log::Level;
+
+use crate::{
+    state::{Context, ErrorCode},
+    Result, MAX_INPUT_DIMENSIONS,
+};
 
 #[derive(Clone)]
 pub struct InterpParams<T>
@@ -17,14 +22,58 @@ where
 }
 
 impl<T: Copy> InterpParams<T> {
-    pub fn set_routine(&mut self, context_id: &Context) -> Result<()> {
-        self.interpolation = (context_id.get_interp_factory())(self.n_inputs, self.n_outputs, self.flags)?;
-        
-        Ok(())
+    pub fn compute_ex(
+        context_id: &Context,
+        n_samples: &[usize],
+        input_chan: usize,
+        output_chan: usize,
+        table: Box<[T]>,
+        flags: u32,
+    ) -> Result<Self> {
+        // Check for maximum inputs
+        if input_chan > MAX_INPUT_DIMENSIONS {
+            context_id.signal_error(
+                Level::Error,
+                ErrorCode::Range,
+                &format!(
+                    "Too many input channels ({} channels, max={})",
+                    input_chan, MAX_INPUT_DIMENSIONS
+                ),
+            );
+            return Err("Invalid number of inputs");
+        }
+
+        let mut p_n_samples = [0usize; MAX_INPUT_DIMENSIONS];
+        let mut p_domain = [0usize; MAX_INPUT_DIMENSIONS];
+
+        for i in 0..input_chan {
+            p_n_samples[i] = n_samples[i];
+            p_domain[i] = n_samples[i] - 1;
+        }
+
+        let mut p_opta = [0usize; MAX_INPUT_DIMENSIONS];
+
+        p_opta[0] = output_chan;
+        for i in 1..input_chan {
+            p_opta[i] = p_opta[i - 1] * n_samples[input_chan - i]
+        }
+
+        Ok(InterpParams {
+            context_id: context_id.clone(),
+            flags,
+            n_inputs: input_chan,
+            n_outputs: output_chan,
+            n_samples: p_n_samples,
+            domain: p_domain,
+            opta: p_opta,
+            table,
+            interpolation: (context_id.get_interp_factory())(input_chan, output_chan, flags)?,
+        })
     }
 }
 
-pub type InterpFn<T> = for<'a> fn(Input: &'a [T], Output: &'a mut [T], p: &'a InterpParams<T>) -> &'a [T];
+pub type InterpFn<T> =
+    for<'a> fn(Input: &'a [T], Output: &'a mut [T], p: &'a InterpParams<T>) -> &'a [T];
 
 #[derive(Clone)]
 pub enum InterpFunction {
