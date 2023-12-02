@@ -166,3 +166,7 @@ fn check_quick_floor_word() -> bool {
     }
     true
 }
+
+const FIXED_PRECISION_15_16: f64 = 1.0 / 65535.0;
+const FIXED_PRECISION_8_8: f64 = 1.0 / 255.0;
+const FLOAT_PRECISION: f64 = 1.0e-5;
