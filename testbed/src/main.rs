@@ -50,6 +50,7 @@ pub fn main() {
     check("Quick floor word", check_quick_floor_word);
     check("Fixed point 15.16 representation", check_fixed_point_15_16);
     check("Fixed point 8.8 representation", check_fixed_point_8_8);
+    check("D50 roundtrip", check_d50_roundtrip);
 
     exit(TOTALFAIL.load(Ordering::SeqCst) as i32)
 }

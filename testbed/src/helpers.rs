@@ -11,8 +11,8 @@ use log::{error, info, Level};
 use rs_cms::{
     f64_to_s15_fixed16_number, f64_to_u8_fixed8_number, s15_fixed16_number_to_f64,
     state::{Context, ErrorCode, DEFAULT_CONTEXT},
-    types::Signature,
-    u8_fixed8_number_to_f64, Result, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
+    types::{Signature, XYZ},
+    u8_fixed8_number_to_f64, Result, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number, D50,
 };
 
 pub type TestFn = fn() -> Result<()>;
@@ -245,6 +245,66 @@ pub fn check_fixed_point_8_8() -> Result<()> {
     test_single_fixed_8_8(0.99999)?;
     test_single_fixed_8_8(0.1234567890123456789099999)?;
     test_single_fixed_8_8(255.1234567890123456789099999)?;
+
+    Ok(())
+}
+
+pub fn check_d50_roundtrip() -> Result<()> {
+    const D50_2: XYZ = XYZ {
+        x: 0.96420288,
+        y: 1.0,
+        z: 0.82490540,
+    };
+
+    let e = (
+        f64_to_s15_fixed16_number(D50.x),
+        f64_to_s15_fixed16_number(D50.y),
+        f64_to_s15_fixed16_number(D50.z),
+    );
+
+    let xyz = XYZ {
+        x: s15_fixed16_number_to_f64(e.0),
+        y: s15_fixed16_number_to_f64(e.1),
+        z: s15_fixed16_number_to_f64(e.2),
+    };
+
+    let d = XYZ {
+        x: (D50.x - xyz.x).abs(),
+        y: (D50.y - xyz.y).abs(),
+        z: (D50.z - xyz.z).abs(),
+    };
+
+    let euc = (d.x * d.x + d.y * d.y + d.z * d.z).sqrt();
+
+    if euc > 1e-5 {
+        fail(&format!("D50 roundtrip |{}|", euc));
+        return Err("D50 roundtrip error outside allowed range");
+    }
+
+    let e = (
+        f64_to_s15_fixed16_number(D50_2.x),
+        f64_to_s15_fixed16_number(D50_2.y),
+        f64_to_s15_fixed16_number(D50_2.z),
+    );
+
+    let xyz = XYZ {
+        x: s15_fixed16_number_to_f64(e.0),
+        y: s15_fixed16_number_to_f64(e.1),
+        z: s15_fixed16_number_to_f64(e.2),
+    };
+
+    let d = XYZ {
+        x: (D50_2.x - xyz.x).abs(),
+        y: (D50_2.y - xyz.y).abs(),
+        z: (D50_2.z - xyz.z).abs(),
+    };
+
+    let euc = (d.x * d.x + d.y * d.y + d.z * d.z).sqrt();
+
+    if euc > 1e-5 {
+        fail(&format!("D50 roundtrip |{}|", euc));
+        return Err("D50 roundtrip error outside allowed range");
+    } 
 
     Ok(())
 }
