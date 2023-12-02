@@ -1,5 +1,5 @@
 use crate::{
-    state::Context,
+    state::{Context, Intent},
     types::{Pipeline, Profile},
     Result,
 };
@@ -13,3 +13,5 @@ pub type IntentFn = fn(
     adaptation_states: Box<[f64]>,
     flags: u32,
 ) -> Result<Pipeline>;
+
+pub(crate) const DEFAULT_INTENTS: &[Intent] = &[];

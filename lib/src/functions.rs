@@ -1,8 +1,10 @@
 use std::mem::size_of;
 
-use chrono::{DateTime, Utc, TimeZone, Timelike, Datelike};
+use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
 
-use crate::{types::DateTimeNumber, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number, PTR_ALIGNMENT};
+use crate::{
+    types::DateTimeNumber, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number, PTR_ALIGNMENT,
+};
 
 #[inline]
 pub fn u8_fixed8_number_to_f64(fixed8: U8Fixed8Number) -> f64 {
@@ -118,7 +120,10 @@ pub const fn from_fixed_domain(a: S15Fixed16Number) -> i32 {
 }
 
 #[inline]
-pub const fn quick_floor(val: f64) -> i32 {
+pub fn quick_floor(val: f64) -> i32 {
+    if cfg!(no_fast_floor) {
+        return val.floor() as i32;
+    }
     const DOUBLE_2_FIX_MAGIC: f64 = 68719476736.0 * 1.5;
 
     union Split {
@@ -126,9 +131,11 @@ pub const fn quick_floor(val: f64) -> i32 {
         pub halves: [i32; 2],
     }
 
-    let i = Split { val };
+    let i = Split {
+        val: val + DOUBLE_2_FIX_MAGIC,
+    };
 
-    unsafe_block!("Accessing part of a union for performing quick_floor" => i.halves[0]) 
+    unsafe_block!("Accessing part of a union for performing quick_floor" => i.halves[0] >> 16)
 }
 
 #[inline]

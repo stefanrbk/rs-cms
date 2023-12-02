@@ -1,8 +1,10 @@
 use std::any::Any;
 
-use crate::{types::Signature, Result, io::IoHandler};
+use crate::{io::IoHandler, types::Signature, Result};
 
-#[derive(Clone)]
+use super::Plugin;
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct TagTypeHandler {
     pub sig: Signature,
     pub read: fn(
@@ -12,3 +14,11 @@ pub struct TagTypeHandler {
         tag_size: usize,
     ) -> Result<Box<dyn Any>>,
 }
+
+pub struct TagTypePlugin {
+    pub base: Plugin,
+    pub handler: TagTypeHandler,
+}
+
+pub(crate) const DEFAULT_TAG_TYPE_HANDLERS: &[TagTypeHandler] = &[];
+pub(crate) const DEFAULT_MPE_TYPE_HANDLERS: &[TagTypeHandler] = &[];

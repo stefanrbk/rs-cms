@@ -1,0 +1,28 @@
+use crate::types::Signature;
+
+pub const DIGITAL_CAMERA: Signature = Signature(0x6463616D);
+pub const FILM_SCANNER: Signature = Signature(0x6673636E);
+pub const REFLECTIVE_SCANNER: Signature = Signature(0x7273636E);
+pub const INK_JET_PRINTER: Signature = Signature(0x696A6574);
+pub const THERMAL_WAX_PRINTER: Signature = Signature(0x74776178);
+pub const ELECTROPHOTOGRAPHIC_PRINTER: Signature = Signature(0x6570686F);
+pub const ELECTROSTATIC_PRINTER: Signature = Signature(0x65737461);
+pub const DYE_SUBLIMATION_PRINTER: Signature = Signature(0x64737562);
+pub const PHOTOGRAPHIC_PAPER_PRINTER: Signature = Signature(0x7270686F);
+pub const FILM_WRITER: Signature = Signature(0x6670726E);
+pub const VIDEO_MONITOR: Signature = Signature(0x7669646D);
+pub const VIDEO_CAMERA: Signature = Signature(0x76696463);
+pub const PROJECTION_TELEVISION: Signature = Signature(0x706A7476);
+pub const CRT_DISPLAY: Signature = Signature(0x43525420);
+pub const PM_DISPLAY: Signature = Signature(0x504D4420);
+pub const AM_DISPLAY: Signature = Signature(0x414D4420);
+pub const PHOTO_CD: Signature = Signature(0x4B504344);
+pub const PHOTO_IMAGE_SETTER: Signature = Signature(0x696D6773);
+pub const GRAVURE: Signature = Signature(0x67726176);
+pub const OFFSET_LITHOGRAPHY: Signature = Signature(0x6F666673);
+pub const SILKSCREEN: Signature = Signature(0x73696C6B);
+pub const FLEXOGRAPHY: Signature = Signature(0x666C6578);
+pub const MOTION_PICTURE_FILM_SCANNER: Signature = Signature(0x6D706673);
+pub const MOTION_PICTURE_FILM_RECORDER: Signature = Signature(0x6D706672);
+pub const DIGITAL_MOTION_PICTURE_CAMERA: Signature = Signature(0x646D7063);
+pub const DIGITAL_CINEMA_PROJECTOR: Signature = Signature(0x64636A70);

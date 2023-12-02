@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-    "lib"
+    "lib", "testbed"
 ]
+resolver = "2"

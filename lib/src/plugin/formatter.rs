@@ -1,5 +1,7 @@
 use crate::types::Transform;
 
+use super::Plugin;
+
 pub type FormatterIn16 =
     for<'a> fn(cargo: Transform, values: &'a mut [u16], buffer: &'a [u8], stride: u32) -> &'a [u8];
 pub type FormatterInFloat =
@@ -20,6 +22,12 @@ pub type FormatterOutFloat = for<'a> fn(
 
 pub type FormatterInFactory = fn(r#type: u32, flags: u32) -> FormatterIn;
 pub type FormatterOutFactory = fn(r#type: u32, flags: u32) -> FormatterOut;
+
+pub struct FormatterPlugin {
+    pub base: Plugin,
+    pub in_factory: FormatterInFactory,
+    pub out_factory: FormatterOutFactory,
+}
 
 pub enum FormatterIn {
     F32(Option<FormatterInFloat>),
@@ -72,3 +80,19 @@ impl FormatterOut {
         }
     }
 }
+
+pub(crate) fn default_input_formatter_factory(_type: u32, _flags: u32) -> FormatterIn {
+    todo!()
+}
+
+pub(crate) fn default_output_formatter_factory(_type: u32, _flags: u32) -> FormatterOut {
+    todo!()
+}
+
+pub(crate) const DEFAULT_FORMATTER_FACTORIES: (
+    &'static FormatterInFactory,
+    &'static FormatterOutFactory,
+) = (
+    &(default_input_formatter_factory as fn(u32, u32) -> FormatterIn),
+    &(default_output_formatter_factory as fn(u32, u32) -> FormatterOut),
+);
