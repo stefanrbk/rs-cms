@@ -5,6 +5,7 @@ use log::{info, Level};
 use rs_cms::state::DEFAULT_CONTEXT;
 
 use helpers::*;
+use lerp::*;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -56,3 +57,4 @@ pub fn main() {
 }
 
 mod helpers;
+mod lerp;
