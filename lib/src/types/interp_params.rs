@@ -1,4 +1,4 @@
-use crate::{state::Context, MAX_INPUT_DIMENSIONS};
+use crate::{state::Context, MAX_INPUT_DIMENSIONS, Result};
 
 #[derive(Clone)]
 pub struct InterpParams<T>
@@ -14,6 +14,14 @@ where
     pub opta: [usize; MAX_INPUT_DIMENSIONS],
     pub table: Box<[T]>,
     pub interpolation: InterpFunction,
+}
+
+impl<T: Copy> InterpParams<T> {
+    pub fn set_routine(&mut self, context_id: &Context) -> Result<()> {
+        self.interpolation = (context_id.get_interp_factory())(self.n_inputs, self.n_outputs, self.flags)?;
+        
+        Ok(())
+    }
 }
 
 pub type InterpFn<T> = for<'a> fn(Input: &'a [T], Output: &'a mut [T], p: &'a InterpParams<T>) -> &'a [T];
