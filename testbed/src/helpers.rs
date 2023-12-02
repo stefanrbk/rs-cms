@@ -9,10 +9,10 @@ use std::{
 
 use log::{error, info, Level};
 use rs_cms::{
-    f64_to_s15_fixed16_number, s15_fixed16_number_to_f64,
+    f64_to_s15_fixed16_number, f64_to_u8_fixed8_number, s15_fixed16_number_to_f64,
     state::{Context, ErrorCode, DEFAULT_CONTEXT},
     types::Signature,
-    Result, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
+    u8_fixed8_number_to_f64, Result, S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
 };
 
 pub type TestFn = fn() -> Result<()>;
@@ -119,7 +119,7 @@ pub fn check_base_types() -> Result<()> {
     if size_of::<U16Fixed16Number>() != 4 {
         return Err("Base type sanity check failed!");
     }
-    
+
     Ok(())
 }
 
@@ -222,6 +222,29 @@ pub fn check_fixed_point_15_16() -> Result<()> {
     test_single_fixed_15_16(-1.1234567890123456789099999)?;
     test_single_fixed_15_16(32767.1234567890123456789099999)?;
     test_single_fixed_15_16(-32767.1234567890123456789099999)?;
+
+    Ok(())
+}
+
+fn test_single_fixed_8_8(d: f64) -> Result<()> {
+    let f = f64_to_u8_fixed8_number(d);
+    let round_trip = u8_fixed8_number_to_f64(f);
+    let error = (d - round_trip).abs();
+
+    if error <= FIXED_PRECISION_8_8 {
+        Ok(())
+    } else {
+        Err("Value is outside allowed error range")
+    }
+}
+
+pub fn check_fixed_point_8_8() -> Result<()> {
+    test_single_fixed_8_8(1.0)?;
+    test_single_fixed_8_8(2.0)?;
+    test_single_fixed_8_8(1.23456)?;
+    test_single_fixed_8_8(0.99999)?;
+    test_single_fixed_8_8(0.1234567890123456789099999)?;
+    test_single_fixed_8_8(255.1234567890123456789099999)?;
 
     Ok(())
 }
