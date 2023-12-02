@@ -1,17 +1,24 @@
 use std::{
+    mem::size_of,
     process::exit,
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
         Mutex,
-    }, mem::size_of,
+    },
 };
 
 use clap::Parser;
 use log::{error, info, Level};
-use rs_cms::{state::{
-    default_error_handler_log_function, Context, ErrorCode, ErrorHandlerLogFunction,
-    DEFAULT_CONTEXT,
-}, types::Signature, U8Fixed8Number, S15Fixed16Number, U16Fixed16Number};
+use rs_cms::{
+    state::{
+        default_error_handler_log_function, Context, ErrorCode, ErrorHandlerLogFunction,
+        DEFAULT_CONTEXT,
+    },
+    types::Signature,
+    S15Fixed16Number, U16Fixed16Number, U8Fixed8Number,
+};
+
+use helpers::*;
 
 static REASON_TO_FAIL: Mutex<String> = Mutex::new(String::new());
 static SUBTEST: Mutex<String> = Mutex::new(String::new());
@@ -170,3 +177,4 @@ fn check_quick_floor_word() -> bool {
 const FIXED_PRECISION_15_16: f64 = 1.0 / 65535.0;
 const FIXED_PRECISION_8_8: f64 = 1.0 / 255.0;
 const FLOAT_PRECISION: f64 = 1.0e-5;
+mod helpers;
