@@ -1,11 +1,24 @@
-use std::process::exit;
+use std::{
+    process::exit,
+    sync::{
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        Mutex,
+    },
+};
 
 use clap::Parser;
-use log::{info, Level};
+use log::{error, info, Level};
 use rs_cms::state::{
     default_error_handler_log_function, Context, ErrorCode, ErrorHandlerLogFunction,
     DEFAULT_CONTEXT,
 };
+
+static REASON_TO_FAIL: Mutex<String> = Mutex::new(String::new());
+static SUBTEST: Mutex<String> = Mutex::new(String::new());
+static TRAPPED_ERROR: AtomicBool = AtomicBool::new(false);
+static SIMULTANEOUS_ERRORS: AtomicUsize = AtomicUsize::new(0usize);
+static TOTALTESTS: AtomicUsize = AtomicUsize::new(0usize);
+static TOTALFAIL: AtomicUsize = AtomicUsize::new(0usize);
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -36,6 +49,24 @@ pub fn main() {
     info!("done.");
 
     print_supported_intents();
+
+    check("Quick floor", check_quick_floor);
+    check("Quick floor word", check_quick_floor_word);
+}
+
+fn check(title: &str, test: fn() -> bool) {
+    info!("Checking {} ...", title);
+    *REASON_TO_FAIL.lock().unwrap() = String::new();
+    *SUBTEST.lock().unwrap() = String::new();
+    TRAPPED_ERROR.store(false, Ordering::SeqCst);
+    SIMULTANEOUS_ERRORS.store(0usize, Ordering::SeqCst);
+    TOTALTESTS.fetch_add(1usize, Ordering::SeqCst);
+    if test() {
+        info!("OK");
+    } else {
+        error!("FAILED");
+        TOTALFAIL.fetch_add(1, Ordering::SeqCst);
+    }
 }
 
 fn die(context_id: &Context, level: Level, error_code: ErrorCode, text: &str) {
@@ -55,4 +86,36 @@ fn print_supported_intents() {
     for i in 0..n {
         info!("\t{} - {}", intents[i].0, intents[i].1);
     }
+}
+
+fn check_quick_floor() -> bool {
+    if rs_cms::quick_floor(1.234) != 1 {
+        return false;
+    }
+    if rs_cms::quick_floor(32767.234) != 32767 {
+        return false;
+    }
+    if rs_cms::quick_floor(-1.234) != -2 {
+        return false;
+    }
+    if rs_cms::quick_floor(-32767.1) != -32768 {
+        return false;
+    }
+
+    true
+}
+
+fn check_quick_floor_word() -> bool {
+    for i in 0..u16::MAX {
+        if rs_cms::quick_floor_word(i as f64 + 0.1234) != i {
+            die(
+                &DEFAULT_CONTEXT,
+                Level::Error,
+                ErrorCode::NotSuitable,
+                "quick_floor_word failed. Please use the \"no_fast_floor\" feature",
+            );
+            return false;
+        }
+    }
+    true
 }
