@@ -362,3 +362,158 @@ fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>)
         output[out_chan] = dxy;
     }
 }
+
+fn trilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let fx = to_fixed_domain(p.domain[0] as i32 * input[0] as i32);
+    let x0 = fixed_to_int(fx);
+    let rx = fixed_rest_to_int(fx);
+
+    let fy = to_fixed_domain(p.domain[1] as i32 * input[1] as i32);
+    let y0 = fixed_to_int(fy);
+    let ry = fixed_rest_to_int(fy);
+
+    let fz = to_fixed_domain(p.domain[2] as i32 * input[2] as i32);
+    let z0 = fixed_to_int(fz);
+    let rz = fixed_rest_to_int(fz);
+
+    let x0 = p.opta[2] as i32 * x0;
+    let x1 = x0
+        + (if input[0] == 0xffff {
+            0
+        } else {
+            p.opta[2] as i32
+        });
+
+    let y0 = p.opta[1] as i32 * y0;
+    let y1 = y0
+        + (if input[1] == 0xffff {
+            0
+        } else {
+            p.opta[1] as i32
+        });
+
+    let z0 = p.opta[0] as i32 * z0;
+    let z1 = z0
+        + (if input[2] == 0xffff {
+            0
+        } else {
+            p.opta[0] as i32
+        });
+
+    for out_chan in 0..total_out {
+        macro_rules! dens {
+            ($i:expr, $j:expr, $k:expr) => {
+                lut_table[$i as usize + $j as usize + $k as usize + out_chan] as i32
+            };
+        }
+        macro_rules! lerp {
+            ($a:expr, $l:expr, $h:expr) => {
+                ($l + round_fixed_to_int(($h - $l) * $a))
+            };
+        }
+
+        let d000 = dens!(x0, y0, z0);
+        let d001 = dens!(x0, y0, z1);
+        let d010 = dens!(x0, y1, z0);
+        let d011 = dens!(x0, y1, z1);
+
+        let d100 = dens!(x1, y0, z0);
+        let d101 = dens!(x1, y0, z1);
+        let d110 = dens!(x1, y1, z0);
+        let d111 = dens!(x1, y1, z1);
+
+        let dx00 = lerp!(rx, d000, d100);
+        let dx01 = lerp!(rx, d001, d101);
+        let dx10 = lerp!(rx, d010, d110);
+        let dx11 = lerp!(rx, d011, d111);
+
+        let dxy0 = lerp!(ry, dx00, dx10);
+        let dxy1 = lerp!(ry, dx01, dx11);
+
+        let dxyz = lerp!(rz, dxy0, dxy1);
+
+        output[out_chan] = dxyz as u16;
+    }
+}
+
+fn trilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let px = fclamp(input[0]) * p.domain[0] as f32;
+    let py = fclamp(input[1]) * p.domain[1] as f32;
+    let pz = fclamp(input[2]) * p.domain[2] as f32;
+
+    let x0 = px.floor() as i32;
+    let y0 = py.floor() as i32;
+    let z0 = pz.floor() as i32;
+
+    let fx = px - x0 as f32;
+    let fy = py - y0 as f32;
+    let fz = pz - z0 as f32;
+
+    let x0 = p.opta[2] as i32 * x0;
+    let x1 = x0
+        + (if fclamp(input[0]) >= 1f32 {
+            0
+        } else {
+            p.opta[2] as i32
+        });
+
+    let y0 = p.opta[1] as i32 * y0;
+    let y1 = y0
+        + (if fclamp(input[1]) >= 1f32 {
+            0
+        } else {
+            p.opta[1] as i32
+        });
+
+    let z0 = p.opta[0] as i32 * z0;
+    let z1 = z0
+        + (if fclamp(input[2]) >= 1f32 {
+            0
+        } else {
+            p.opta[0] as i32
+        });
+
+    for out_chan in 0..total_out {
+        macro_rules! dens {
+            ($i:expr, $j:expr, $k:expr) => {
+                lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+            };
+        }
+        macro_rules! lerp {
+            ($a:expr, $l:expr, $h:expr) => {
+                ($l + ($h - $l) * $a)
+            };
+        }
+        
+        let d000 = dens!(x0, y0, z0);
+        let d001 = dens!(x0, y0, z1);
+        let d010 = dens!(x0, y1, z0);
+        let d011 = dens!(x0, y1, z1);
+        
+        let d100 = dens!(x1, y0, z0);
+        let d101 = dens!(x1, y0, z1);
+        let d110 = dens!(x1, y1, z0);
+        let d111 = dens!(x1, y1, z1);
+
+        let dx00 = lerp!(fx, d000, d100);
+        let dx01 = lerp!(fx, d001, d101);
+
+        let dx10 = lerp!(fx, d010, d110);
+        let dx11 = lerp!(fx, d011, d111);
+
+        let dxy0 = lerp!(fy, dx00, dx10);
+        let dxy1 = lerp!(fy, dx01, dx11);
+
+        let dxyz = lerp!(fz, dxy0, dxy1);
+
+        output[out_chan] = dxyz;
+    }
+}
