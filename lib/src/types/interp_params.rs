@@ -209,14 +209,14 @@ fn eval_1_input(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
 
         let k1 = k0 + if input[0] != 0xffff { 1 } else { 0 };
 
-        let K0 = p16.opta[0] as i32 * k0;
-        let K1 = p16.opta[0] as i32 * k1;
+        let k0 = p16.opta[0] as i32 * k0;
+        let k1 = p16.opta[0] as i32 * k1;
 
         for out_chan in 0..p16.n_outputs {
             output[out_chan] = linear_interp(
                 rk as i32,
-                lut_table[K0 as usize + out_chan] as i32,
-                lut_table[K1 as usize + out_chan] as i32,
+                lut_table[k0 as usize + out_chan] as i32,
+                lut_table[k1 as usize + out_chan] as i32,
             );
         }
     }
