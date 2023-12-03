@@ -122,13 +122,13 @@ impl InterpFunction {
 }
 
 #[inline]
-fn linear_interp(a: S15Fixed16Number, l: S15Fixed16Number, h: S15Fixed16Number) -> u16 {
+fn linear_interp_u16(a: S15Fixed16Number, l: S15Fixed16Number, h: S15Fixed16Number) -> u16 {
     let dif = (h - l) as u32 * a as u32 + 0x8000;
     let dif = (dif >> 16) + l as u32;
     dif as u16
 }
 
-fn lin_lerp_1d(value: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
+fn lin_lerp_1d_u16(value: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
     let lut_table = &p.table;
 
     // if last value or just one point
@@ -144,7 +144,7 @@ fn lin_lerp_1d(value: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
         let y0 = lut_table[cell0 as usize];
         let y1 = lut_table[cell0 as usize + 1];
 
-        output[0] = linear_interp(rest, y0 as i32, y1 as i32);
+        output[0] = linear_interp_u16(rest, y0 as i32, y1 as i32);
     }
 }
 
@@ -190,7 +190,7 @@ fn lin_lerp_1d_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
     }
 }
 
-fn eval_1_input(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
+fn eval_1_input_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
     let lut_table = &p16.table;
 
     // if last value...
@@ -213,7 +213,7 @@ fn eval_1_input(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
         let k1 = p16.opta[0] as i32 * k1;
 
         for out_chan in 0..p16.n_outputs {
-            output[out_chan] = linear_interp(
+            output[out_chan] = linear_interp_u16(
                 rk as i32,
                 lut_table[k0 as usize + out_chan] as i32,
                 lut_table[k1 as usize + out_chan] as i32,
@@ -254,7 +254,7 @@ fn eval_1_input_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
     }
 }
 
-fn bilinear_interp(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
+fn bilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
     let lut_table = &p.table;
 
     let total_out = p.n_outputs;
