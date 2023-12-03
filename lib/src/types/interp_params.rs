@@ -3,7 +3,7 @@ use log::Level;
 use crate::{
     fixed_rest_to_int, fixed_to_int,
     state::{Context, ErrorCode},
-    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS,
+    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS, round_fixed_to_int, quick_floor,
 };
 
 #[derive(Clone)]
@@ -251,5 +251,91 @@ fn eval_1_input_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
 
             output[0] = linear_interp_f32(rest, y0, y1);
         }
+    }
+}
+
+fn bilinear_interp(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let fx = to_fixed_domain(p.domain[0] as i32 * input[0] as i32);
+    let x0 = fixed_to_int(fx);
+    let rx = fixed_rest_to_int(fx);
+
+    let fy = to_fixed_domain(p.domain[1] as i32 * input[1] as i32);
+    let y0 = fixed_to_int(fy);
+    let ry = fixed_rest_to_int(fy);
+
+    let x0 = p.opta[1] as i32 * x0;
+    let x1 = x0 + (if input[0] == 0xffff { 0 } else { p.opta[1] as i32 });
+
+    let y0 = p.opta[0] as i32 * y0;
+    let y1 = y0 + (if input[1] == 0xffff { 0 } else { p.opta[0] as i32 });
+
+    for out_chan in 0..total_out {
+        macro_rules! dens {
+            ($i:expr, $j:expr) => {
+                lut_table[$i as usize + $j as usize + out_chan] as i32
+            };
+        }
+        macro_rules! lerp {
+            ($a:expr, $l:expr, $h:expr) => {
+                ($l + round_fixed_to_int(($h - $l) * $a))
+            };
+        }
+        let d00 = dens!(x0, y0);
+        let d01 = dens!(x0, y1);
+        let d10 = dens!(x1, y0);
+        let d11 = dens!(x1, y1);
+
+        let dx0 = lerp!(rx, d00, d10);
+        let dx1 = lerp!(rx, d01, d11);
+
+        let dxy = lerp!(ry, dx0, dx1);
+
+        output[out_chan] = dxy as u16;
+    }
+}
+
+fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let px = fclamp(input[0]) * p.domain[0] as f32;
+    let py = fclamp(input[1]) * p.domain[1] as f32;
+
+    let x0 = quick_floor(px as f64);
+    let y0 = quick_floor(py as f64);
+
+    let x0 = p.opta[1] as i32 * x0;
+    let x1 = x0 + (if input[0] >= 1f32 { 0 } else { p.opta[1] as i32 });
+
+    let y0 = p.opta[0] as i32 * y0;
+    let y1 = y0 + (if input[1] >= 1f32 { 0 } else { p.opta[0] as i32 });
+
+    for out_chan in 0..total_out {
+        macro_rules! dens {
+            ($i:expr, $j:expr) => {
+                lut_table[$i as usize + $j as usize + out_chan]
+            };
+        }
+        macro_rules! lerp {
+            ($a:expr, $l:expr, $h:expr) => {
+                ($l + ($h - $l) * $a)
+            };
+        }
+        let d00 = dens!(x0, y0);
+        let d01 = dens!(x0, y1);
+        let d10 = dens!(x1, y0);
+        let d11 = dens!(x1, y1);
+
+        let dx0 = lerp!(px, d00, d10);
+        let dx1 = lerp!(px, d01, d11);
+
+        let dxy = lerp!(py, dx0, dx1);
+
+        output[out_chan] = dxy;
     }
 }
