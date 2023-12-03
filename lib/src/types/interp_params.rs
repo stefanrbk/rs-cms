@@ -492,12 +492,12 @@ fn trilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>
                 ($l + ($h - $l) * $a)
             };
         }
-        
+
         let d000 = dens!(x0, y0, z0);
         let d001 = dens!(x0, y0, z1);
         let d010 = dens!(x0, y1, z0);
         let d011 = dens!(x0, y1, z1);
-        
+
         let d100 = dens!(x1, y0, z0);
         let d101 = dens!(x1, y0, z1);
         let d110 = dens!(x1, y1, z0);
@@ -515,5 +515,290 @@ fn trilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>
         let dxyz = lerp!(fz, dxy0, dxy1);
 
         output[out_chan] = dxyz;
+    }
+}
+
+fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParams<u16>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let fx = to_fixed_domain(p.domain[0] as i32 * input[0] as i32);
+    let fy = to_fixed_domain(p.domain[1] as i32 * input[1] as i32);
+    let fz = to_fixed_domain(p.domain[2] as i32 * input[2] as i32);
+
+    let x0 = fixed_to_int(fx);
+    let y0 = fixed_to_int(fy);
+    let z0 = fixed_to_int(fz);
+
+    let rx = fixed_rest_to_int(fx);
+    let ry = fixed_rest_to_int(fy);
+    let rz = fixed_rest_to_int(fz);
+
+    let x0 = p.opta[2] as i32 * x0;
+    let mut x1 = (x0
+        + (if input[0] == 0xffff {
+            0
+        } else {
+            p.opta[2] as i32
+        })) as usize;
+
+    let y0 = p.opta[1] as i32 * y0;
+    let mut y1 = (y0
+        + (if input[1] == 0xffff {
+            0
+        } else {
+            p.opta[1] as i32
+        })) as usize;
+
+    let z0 = p.opta[0] as i32 * z0;
+    let mut z1 = (z0
+        + (if input[2] == 0xffff {
+            0
+        } else {
+            p.opta[0] as i32
+        })) as usize;
+
+    let mut lut_table = &lut_table[((x0 + y0 + z0) as usize)..];
+
+    if rx >= ry {
+        if ry >= rz {
+            y1 += x1;
+            z1 += y1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c3 = c3 - c2;
+                let c2 = c2 - c1;
+                let c1 = c1 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        } else if rz >= rx {
+            x1 += z1;
+            y1 += x1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c2 = c2 - c1;
+                let c1 = c1 - c3;
+                let c3 = c3 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        } else {
+            z1 += x1;
+            y1 += z1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c2 = c2 - c3;
+                let c3 = c3 - c1;
+                let c1 = c1 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        }
+    } else {
+        if rx >= rz {
+            x1 += y1;
+            z1 += x1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c3 = c3 - c1;
+                let c1 = c1 - c2;
+                let c2 = c2 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        } else if ry >= rz {
+            z1 += y1;
+            x1 += z1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c1 = c1 - c3;
+                let c3 = c3 - c2;
+                let c2 = c2 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        } else {
+            y1 += z1;
+            x1 += y1;
+            for _ in 0..total_out {
+                let c1 = lut_table[x1];
+                let c2 = lut_table[y1];
+                let c3 = lut_table[z1];
+                let c0 = lut_table[0];
+                lut_table = &lut_table[1..];
+                let c1 = c1 - c2;
+                let c2 = c2 - c3;
+                let c3 = c3 - c0;
+                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
+                output = &mut output[1..];
+            }
+        }
+    }
+}
+
+fn tetrahedral_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let lut_table = &p.table;
+
+    let total_out = p.n_outputs;
+
+    let px = fclamp(input[0]) * p.domain[0] as f32;
+    let py = fclamp(input[1]) * p.domain[1] as f32;
+    let pz = fclamp(input[2]) * p.domain[2] as f32;
+
+    let x0 = px.floor() as i32;
+    let y0 = py.floor() as i32;
+    let z0 = pz.floor() as i32;
+
+    let rx = px - x0 as f32;
+    let ry = py - y0 as f32;
+    let rz = pz - z0 as f32;
+
+    let x0 = p.opta[2] as i32 * x0;
+    let y0 = p.opta[1] as i32 * y0;
+    let z0 = p.opta[0] as i32 * z0;
+
+    let x1 = x0
+        + (if fclamp(input[0]) >= 1f32 {
+            0
+        } else {
+            p.opta[2] as i32
+        });
+
+    let y1 = y0
+        + (if fclamp(input[1]) >= 1f32 {
+            0
+        } else {
+            p.opta[1] as i32
+        });
+
+    let z1 = z0
+        + (if fclamp(input[2]) >= 1f32 {
+            0
+        } else {
+            p.opta[0] as i32
+        });
+
+    if rx >= ry {
+        if ry >= rz {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y0, z0) - c0;
+                let c2 = dens!(x1, y1, z0) - dens!(x1, y0, z0);
+                let c3 = dens!(x1, y1, z1) - dens!(x1, y1, z0);
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        } else if rz >= rx {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y0, z1) - dens!(x0, y0, z1);
+                let c2 = dens!(x1, y1, z1) - dens!(x1, y0, z1);
+                let c3 = dens!(x0, y0, z1) - c0;
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        } else {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y0, z0) - c0;
+                let c2 = dens!(x1, y1, z1) - dens!(x1, y0, z1);
+                let c3 = dens!(x1, y0, z1) - dens!(x1, y0, z0);
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        }
+    } else {
+        if rx >= rz {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y1, z0) - dens!(x0, y1, z0);
+                let c2 = dens!(x0, y1, z0) - c0;
+                let c3 = dens!(x1, y1, z1) - dens!(x1, y1, z0);
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        } else if ry >= rz {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y1, z1) - dens!(x0, y1, z1);
+                let c2 = dens!(x0, y1, z0) - c0;
+                let c3 = dens!(x0, y1, z1) - dens!(x0, y1, z0);
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        } else {
+            for out_chan in 0..total_out {
+                macro_rules! dens {
+                    ($i:expr, $j:expr, $k:expr) => {
+                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
+                    };
+                }
+                let c0 = dens!(x0, y0, z0);
+
+                let c1 = dens!(x1, y1, z1) - dens!(x0, y1, z1);
+                let c2 = dens!(x0, y1, z1) - dens!(x0, y0, z1);
+                let c3 = dens!(x0, y0, z1) - c0;
+
+                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
+            }
+        }
     }
 }
