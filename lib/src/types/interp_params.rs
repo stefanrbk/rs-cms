@@ -1,9 +1,9 @@
 use log::Level;
 
 use crate::{
-    fixed_rest_to_int, fixed_to_int,
+    fixed_rest_to_int, fixed_to_int, quick_floor, round_fixed_to_int,
     state::{Context, ErrorCode},
-    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS, round_fixed_to_int, quick_floor,
+    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS,
 };
 
 #[derive(Clone)]
@@ -268,10 +268,20 @@ fn bilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>)
     let ry = fixed_rest_to_int(fy);
 
     let x0 = p.opta[1] as i32 * x0;
-    let x1 = x0 + (if input[0] == 0xffff { 0 } else { p.opta[1] as i32 });
+    let x1 = x0
+        + (if input[0] == 0xffff {
+            0
+        } else {
+            p.opta[1] as i32
+        });
 
     let y0 = p.opta[0] as i32 * y0;
-    let y1 = y0 + (if input[1] == 0xffff { 0 } else { p.opta[0] as i32 });
+    let y1 = y0
+        + (if input[1] == 0xffff {
+            0
+        } else {
+            p.opta[0] as i32
+        });
 
     for out_chan in 0..total_out {
         macro_rules! dens {
@@ -309,11 +319,24 @@ fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>)
     let x0 = quick_floor(px as f64);
     let y0 = quick_floor(py as f64);
 
+    let fx = px - x0 as f32;
+    let fy = py - y0 as f32;
+
     let x0 = p.opta[1] as i32 * x0;
-    let x1 = x0 + (if input[0] >= 1f32 { 0 } else { p.opta[1] as i32 });
+    let x1 = x0
+        + (if input[0] >= 1f32 {
+            0
+        } else {
+            p.opta[1] as i32
+        });
 
     let y0 = p.opta[0] as i32 * y0;
-    let y1 = y0 + (if input[1] >= 1f32 { 0 } else { p.opta[0] as i32 });
+    let y1 = y0
+        + (if input[1] >= 1f32 {
+            0
+        } else {
+            p.opta[0] as i32
+        });
 
     for out_chan in 0..total_out {
         macro_rules! dens {
@@ -331,10 +354,10 @@ fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>)
         let d10 = dens!(x1, y0);
         let d11 = dens!(x1, y1);
 
-        let dx0 = lerp!(px, d00, d10);
-        let dx1 = lerp!(px, d01, d11);
+        let dx0 = lerp!(fx, d00, d10);
+        let dx1 = lerp!(fx, d01, d11);
 
-        let dxy = lerp!(py, dx0, dx1);
+        let dxy = lerp!(fy, dx0, dx1);
 
         output[out_chan] = dxy;
     }
