@@ -3,7 +3,7 @@ use log::Level;
 use crate::{
     fixed_rest_to_int, fixed_to_int, quick_floor, round_fixed_to_int,
     state::{Context, ErrorCode},
-    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS,
+    to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS, MAX_STAGE_CHANNELS,
 };
 
 #[derive(Clone)]
@@ -91,8 +91,11 @@ impl<'table, T: Copy> InterpParams<'table, T> {
     }
 }
 
-pub type InterpFn<T> =
-    for<'table, 'a> fn(Input: &'a [T], Output: &'a mut [T], p: &'a InterpParams<'table, T>) -> &'a [T];
+pub type InterpFn<T> = for<'table, 'a> fn(
+    Input: &'a [T],
+    Output: &'a mut [T],
+    p: &'a InterpParams<'table, T>,
+) -> &'a [T];
 
 #[derive(Clone)]
 pub enum InterpFunction {
@@ -663,6 +666,67 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
         }
     }
 }
+macro_rules! dens {
+    ($lut_table:expr, $out_chan:expr; $i:expr, $j:expr, $k:expr) => {
+        $lut_table[($i + $j + $k) as usize + $out_chan] as i32
+    };
+}
+
+macro_rules! lut_u16 {
+    (($lut:expr, $output:expr, $total_out:expr) =>
+        {$rx:expr, $ry:expr, $rz:expr; $x0:expr, $y0:expr, $z0:expr},
+        $({$($c_x_:expr, $c_y_:expr, $c_z_:expr);*}),*) => {
+            for out_chan in 0..$total_out {
+                let c0 = dens!($lut, out_chan; $x0, $y0, $z0);
+
+                let (c1, c2, c3) = _lut!(($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
+
+                let rest = c1 * $rx + c2 * $ry + c3 * $rz;
+                $output[out_chan] = (c0 + round_fixed_to_int(to_fixed_domain(rest))) as u16;
+            }
+    };
+}
+
+macro_rules! lut_f32 {
+    (($lut:expr, $output:expr, $total_out:expr) =>
+        {$rx:expr, $ry:expr, $rz:expr; $x0:expr, $y0:expr, $z0:expr},
+        $({$($c_x_:expr, $c_y_:expr, $c_z_:expr);*}),*) => {
+            for out_chan in 0..$total_out {
+                let c0 = dens!($lut, out_chan; $x0, $y0, $z0);
+
+                let (c1, c2, c3) = _lut!(($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
+
+                $output[out_chan] = c0 as f32 + c1 as f32 * $rx + c2 as f32 * $ry + c3 as f32 * $rz;
+            }
+    };
+}
+
+macro_rules! _lut {
+    (($lut:expr, $out_chan:expr, $c0:expr) =>
+        {$c1x1:expr, $c1y1:expr, $c1z1:expr},
+        {$c2x1:expr, $c2y1:expr, $c2z1:expr; $c2x2:expr, $c2y2:expr, $c2z2:expr},
+        {$c3x1:expr, $c3y1:expr, $c3z1:expr; $c3x2:expr, $c3y2:expr, $c3z2:expr}) => {
+            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - $c0,
+                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($lut, $out_chan; $c2x2, $c2y2, $c2z2),
+                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($lut, $out_chan; $c3x2, $c3y2, $c3z2))
+        };
+        (($lut:expr, $out_chan:expr, $c0:expr) =>
+        {$c1x1:expr, $c1y1:expr, $c1z1:expr; $c1x2:expr, $c1y2:expr, $c1z2:expr},
+        {$c2x1:expr, $c2y1:expr, $c2z1:expr},
+        {$c3x1:expr, $c3y1:expr, $c3z1:expr; $c3x2:expr, $c3y2:expr, $c3z2:expr}) => {
+            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($lut, $out_chan; $c1x2, $c1y2, $c1z2),
+                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - $c0,
+                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($lut, $out_chan; $c3x2, $c3y2, $c3z2))
+    };
+    (($lut:expr, $out_chan:expr, $c0:expr) =>
+        {$c1x1:expr, $c1y1:expr, $c1z1:expr; $c1x2:expr, $c1y2:expr, $c1z2:expr},
+        {$c2x1:expr, $c2y1:expr, $c2z1:expr; $c2x2:expr, $c2y2:expr, $c2z2:expr},
+        {$c3x1:expr, $c3y1:expr, $c3z1:expr}) => {
+            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($lut, $out_chan; $c1x2, $c1y2, $c1z2),
+                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($lut, $out_chan; $c2x2, $c2y2, $c2z2),
+                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - $c0)
+    };
+}
 
 fn tetrahedral_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
     let lut_table = &p.table;
@@ -707,98 +771,306 @@ fn tetrahedral_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f3
         });
 
     if rx >= ry {
-        if ry >= rz {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y0, z0) - c0;
-                let c2 = dens!(x1, y1, z0) - dens!(x1, y0, z0);
-                let c3 = dens!(x1, y1, z1) - dens!(x1, y1, z0);
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
-        } else if rz >= rx {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y0, z1) - dens!(x0, y0, z1);
-                let c2 = dens!(x1, y1, z1) - dens!(x1, y0, z1);
-                let c3 = dens!(x0, y0, z1) - c0;
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
-        } else {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y0, z0) - c0;
-                let c2 = dens!(x1, y1, z1) - dens!(x1, y0, z1);
-                let c3 = dens!(x1, y0, z1) - dens!(x1, y0, z0);
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
+        if ry >= rz
+        // rx >= ry >= rz
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z0; x1, y0, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if rz >= rx
+        // rz >= rx >= ry
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z1; x0, y0, z1},
+                {x1, y1, z1; x1, y0, z1},
+                {x0, y0, z1}
+            );
+        } else
+        // rx >= rz >= ry
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z1; x1, y0, z1},
+                {x1, y0, z1; x1, y0, z0}
+            );
         }
-    } else {
-        if rx >= rz {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y1, z0) - dens!(x0, y1, z0);
-                let c2 = dens!(x0, y1, z0) - c0;
-                let c3 = dens!(x1, y1, z1) - dens!(x1, y1, z0);
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
-        } else if ry >= rz {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y1, z1) - dens!(x0, y1, z1);
-                let c2 = dens!(x0, y1, z0) - c0;
-                let c3 = dens!(x0, y1, z1) - dens!(x0, y1, z0);
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
-        } else {
-            for out_chan in 0..total_out {
-                macro_rules! dens {
-                    ($i:expr, $j:expr, $k:expr) => {
-                        lut_table[$i as usize + $j as usize + $k as usize + out_chan]
-                    };
-                }
-                let c0 = dens!(x0, y0, z0);
-
-                let c1 = dens!(x1, y1, z1) - dens!(x0, y1, z1);
-                let c2 = dens!(x0, y1, z1) - dens!(x0, y0, z1);
-                let c3 = dens!(x0, y0, z1) - c0;
-
-                output[out_chan] = c0 + c1 * rx + c2 * ry + c3 * rz;
-            }
+    } else
+    // ry >= rx
+    {
+        if rx >= rz
+        // ry >= rx >= rz
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z0; x0, y1, z0},
+                {x0, y1, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if ry >= rz
+        // ry >= rz >= rx
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z0},
+                {x0, y1, z1; x0, y1, z0}
+            );
+        } else
+        // rz >= ry >= rx
+        {
+            lut_f32!(
+                (lut_table, output, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z1; x0, y0, z1},
+                {x0, y0, z1}
+            );
         }
+    }
+}
+
+fn eval_4_inputs_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
+    let mut tmp1 = [0u16; MAX_STAGE_CHANNELS];
+    let mut tmp2 = [0u16; MAX_STAGE_CHANNELS];
+
+    let total_out = p16.n_outputs;
+
+    let fk = to_fixed_domain(p16.domain[0] as i32 * input[0] as i32);
+    let fx = to_fixed_domain(p16.domain[1] as i32 * input[1] as i32);
+    let fy = to_fixed_domain(p16.domain[2] as i32 * input[2] as i32);
+    let fz = to_fixed_domain(p16.domain[3] as i32 * input[3] as i32);
+
+    let k0 = fixed_to_int(fk);
+    let x0 = fixed_to_int(fx);
+    let y0 = fixed_to_int(fy);
+    let z0 = fixed_to_int(fz);
+
+    let rk = fixed_rest_to_int(fk);
+    let rx = fixed_rest_to_int(fx);
+    let ry = fixed_rest_to_int(fy);
+    let rz = fixed_rest_to_int(fz);
+
+    let k0 = p16.opta[3] as i32 * k0;
+    let x0 = p16.opta[2] as i32 * x0;
+    let y0 = p16.opta[1] as i32 * y0;
+    let z0 = p16.opta[0] as i32 * z0;
+
+    let k1 = k0
+        + (if input[0] == 0xffff {
+            0
+        } else {
+            p16.opta[3] as i32
+        });
+
+    let x1 = x0
+        + (if input[1] == 0xffff {
+            0
+        } else {
+            p16.opta[2] as i32
+        });
+
+    let y1 = y0
+        + (if input[2] == 0xffff {
+            0
+        } else {
+            p16.opta[1] as i32
+        });
+
+    let z1 = z0
+        + (if input[3] == 0xffff {
+            0
+        } else {
+            p16.opta[0] as i32
+        });
+
+    let lut_table = &p16.table[(k0 as usize)..];
+
+    if rx >= ry {
+        if ry >= rz
+        // rx >= ry >= rz
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z0; x1, y0, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if rz >= rx
+        // rz >= rx >= ry
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z1; x0, y0, z1},
+                {x1, y1, z1; x1, y0, z1},
+                {x0, y0, z1}
+            );
+        } else
+        // rx >= rz >= ry
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z1; x1, y0, z1},
+                {x1, y0, z1; x1, y0, z0}
+            );
+        }
+    } else
+    // ry >= rx
+    {
+        if rx >= rz
+        // ry >= rx >= rz
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z0; x0, y1, z0},
+                {x0, y1, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if ry >= rz
+        // ry >= rz >= rx
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z0},
+                {x0, y1, z1; x0, y1, z0}
+            );
+        } else
+        // rz >= ry >= rx
+        {
+            lut_u16!(
+                (lut_table, tmp1, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z1; x0, y0, z1},
+                {x0, y0, z1}
+            );
+        }
+    }
+
+    let lut_table = &p16.table[(k1 as usize)..];
+
+    if rx >= ry {
+        if ry >= rz
+        // rx >= ry >= rz
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z0; x1, y0, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if rz >= rx
+        // rz >= rx >= ry
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z1; x0, y0, z1},
+                {x1, y1, z1; x1, y0, z1},
+                {x0, y0, z1}
+            );
+        } else
+        // rx >= rz >= ry
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y0, z0},
+                {x1, y1, z1; x1, y0, z1},
+                {x1, y0, z1; x1, y0, z0}
+            );
+        }
+    } else
+    // ry >= rx
+    {
+        if rx >= rz
+        // ry >= rx >= rz
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z0; x0, y1, z0},
+                {x0, y1, z0},
+                {x1, y1, z1; x1, y1, z0}
+            );
+        } else if ry >= rz
+        // ry >= rz >= rx
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z0},
+                {x0, y1, z1; x0, y1, z0}
+            );
+        } else
+        // rz >= ry >= rx
+        {
+            lut_u16!(
+                (lut_table, tmp2, total_out) =>
+                {rx, ry, rz; x0, y0, z0},
+                {x1, y1, z1; x0, y1, z1},
+                {x0, y1, z1; x0, y0, z1},
+                {x0, y0, z1}
+            );
+        }
+    }
+
+    for i in 0..p16.n_outputs {
+        output[i] = linear_interp_u16(rk, tmp1[i] as i32, tmp2[i] as i32);
+    }
+}
+
+fn eval_4_inputs_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+    let mut tmp1 = [0f32; MAX_STAGE_CHANNELS];
+    let mut tmp2 = [0f32; MAX_STAGE_CHANNELS];
+
+    let pk = fclamp(input[0]) * p.domain[0] as f32;
+    let k0 = quick_floor(pk as f64) as i32;
+    let rest = pk - k0 as f32;
+
+    let k0 = p.opta[3] as i32 * k0;
+    let k1 = k0
+        + (if fclamp(input[0]) >= 1f32 {
+            0
+        } else {
+            p.opta[3] as i32
+        });
+
+    let mut p1 = p.clone();
+    p1.domain.copy_within(1..4, 0);
+
+    let t = &p.table[(k0 as usize)..];
+    p1.table = t;
+
+    tetrahedral_interp_f32(&input[1..], &mut tmp1, &p1);
+
+    let t = &p.table[(k1 as usize)..];
+    p1.table = t;
+
+    tetrahedral_interp_f32(&input[1..], &mut tmp2, &p1);
+
+    for i in 0..p.n_outputs {
+        let y0 = tmp1[i];
+        let y1 = tmp2[i];
+
+        output[i] = y0 + (y1 - y0) * rest;
     }
 }
