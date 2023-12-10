@@ -12,11 +12,68 @@ pub type InterpFnFactory =
     fn(input_chans: usize, output_chans: usize, flags: u32) -> Result<InterpFunction>;
 
 pub(crate) fn default_interpolators_factory(
-    _in_chans: usize,
-    _out_chans: usize,
-    _flags: u32,
+    in_chans: usize,
+    out_chans: usize,
+    flags: u32,
 ) -> Result<InterpFunction> {
-    todo!()
+    let is_float = (flags & lerp_flags::FLOAT) != 0;
+    let is_trilinear = (flags & lerp_flags::TRILINEAR) != 0;
+
+    match (in_chans, out_chans, is_float, is_trilinear) {
+        (16.., _, _, _) => Err("Invalid number of input channels"),
+        (_, MAX_STAGE_CHANNELS.., _, _) => Err("Invalid number of output channels"),
+        // Gray LUT / linear
+        (1, 1, true, _) => Ok(InterpFunction::F32(lin_lerp_1d_f32)),
+        (1, 1, false, _) => Ok(InterpFunction::U16(lin_lerp_1d_u16)),
+        (1, _, true, _) => Ok(InterpFunction::F32(eval_1_input_f32)),
+        (1, _, false, _) => Ok(InterpFunction::U16(eval_1_input_u16)),
+        // Duotone
+        (2, _, true, _) => Ok(InterpFunction::F32(bilinear_interp_f32)),
+        (2, _, false, _) => Ok(InterpFunction::U16(bilinear_interp_u16)),
+        // RGB et al
+        (3, _, true, true) => Ok(InterpFunction::F32(trilinear_interp_f32)),
+        (3, _, false, true) => Ok(InterpFunction::U16(trilinear_interp_u16)),
+        (3, _, true, false) => Ok(InterpFunction::F32(tetrahedral_interp_f32)),
+        (3, _, false, false) => Ok(InterpFunction::U16(tetrahedral_interp_u16)),
+        // CMYK Lut
+        (4, _, true, _) => Ok(InterpFunction::F32(eval_4_inputs_f32)),
+        (4, _, false, _) => Ok(InterpFunction::U16(eval_4_inputs_u16)),
+        // 5 inks
+        (5, _, true, _) => Ok(InterpFunction::F32(eval_5_inputs_f32)),
+        (5, _, false, _) => Ok(InterpFunction::U16(eval_5_inputs_u16)),
+        // 6 inks
+        (6, _, true, _) => Ok(InterpFunction::F32(eval_6_inputs_f32)),
+        (6, _, false, _) => Ok(InterpFunction::U16(eval_6_inputs_u16)),
+        // 7 inks
+        (7, _, true, _) => Ok(InterpFunction::F32(eval_7_inputs_f32)),
+        (7, _, false, _) => Ok(InterpFunction::U16(eval_7_inputs_u16)),
+        // 8 inks
+        (8, _, true, _) => Ok(InterpFunction::F32(eval_8_inputs_f32)),
+        (8, _, false, _) => Ok(InterpFunction::U16(eval_8_inputs_u16)),
+        // Duotone
+        (9, _, true, _) => Ok(InterpFunction::F32(eval_9_inputs_f32)),
+        (9, _, false, _) => Ok(InterpFunction::U16(eval_9_inputs_u16)),
+        // Duotone
+        (10, _, true, _) => Ok(InterpFunction::F32(eval_10_inputs_f32)),
+        (10, _, false, _) => Ok(InterpFunction::U16(eval_10_inputs_u16)),
+        // Duotone
+        (11, _, true, _) => Ok(InterpFunction::F32(eval_11_inputs_f32)),
+        (11, _, false, _) => Ok(InterpFunction::U16(eval_11_inputs_u16)),
+        // Duotone
+        (12, _, true, _) => Ok(InterpFunction::F32(eval_12_inputs_f32)),
+        (12, _, false, _) => Ok(InterpFunction::U16(eval_12_inputs_u16)),
+        // Duotone
+        (13, _, true, _) => Ok(InterpFunction::F32(eval_13_inputs_f32)),
+        (13, _, false, _) => Ok(InterpFunction::U16(eval_13_inputs_u16)),
+        // Duotone
+        (14, _, true, _) => Ok(InterpFunction::F32(eval_14_inputs_f32)),
+        (14, _, false, _) => Ok(InterpFunction::U16(eval_14_inputs_u16)),
+        // Duotone
+        (15, _, true, _) => Ok(InterpFunction::F32(eval_15_inputs_f32)),
+        (15, _, false, _) => Ok(InterpFunction::U16(eval_15_inputs_u16)),
+        // Error!!
+        _ => Err("Invalid channel combination"),
+    }
 }
 
 pub mod lerp_flags {
