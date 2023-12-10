@@ -1,37 +1,11 @@
 use std::{process::exit, sync::atomic::Ordering};
 
 use clap::Parser;
-use log::{info, Level};
+use log::{info, Level, error};
 use rs_cms::state::DEFAULT_CONTEXT;
 
 use helpers::*;
 use lerp::*;
-
-#[derive(Parser)]
-#[command(author, version, about)]
-struct Cli {
-    #[arg(short, long, default_value = "true")]
-    checks: bool,
-    #[arg(short, long, default_value = "false")]
-    exhaustive: bool,
-    #[arg(short, long, default_value = "false")]
-    plugins: bool,
-    #[arg(short, long, default_value = "false")]
-    speed: bool,
-    #[arg(short, long, default_value = "false")]
-    zoo: bool,
-}
-
-fn print_supported_intents() {
-    let mut intents: Vec<(u32, &str)> = Vec::with_capacity(200);
-
-    let n = DEFAULT_CONTEXT.get_supported_intents(200, &mut intents);
-
-    info!("Supported intents:");
-    for i in 0..n {
-        info!("\t{} - {}", intents[i].0, intents[i].1);
-    }
-}
 
 pub fn main() {
     let args = Cli::parse();
@@ -72,6 +46,54 @@ pub fn main() {
     }
 
     exit(TOTALFAIL.load(Ordering::SeqCst) as i32)
+}
+
+pub fn check(title: &str, test: TestFn) {
+    info!("Checking {} ...", title);
+    *REASON_TO_FAIL.lock().unwrap() = String::default();
+    *SUBTEST.lock().unwrap() = String::default();
+    TRAPPED_ERROR.store(false, Ordering::SeqCst);
+    SIMULTANEOUS_ERRORS.store(0usize, Ordering::SeqCst);
+    TOTALTESTS.fetch_add(1usize, Ordering::SeqCst);
+    if test().is_ok() && !TRAPPED_ERROR.load(Ordering::SeqCst) {
+        info!("OK");
+    } else {
+        error!("FAILED");
+        let subtest = SUBTEST.lock().unwrap();
+        let reason_to_fail = REASON_TO_FAIL.lock().unwrap();
+        if subtest.len() == 0 {
+            error!("{}: [{}]\n\t{}", title, subtest, reason_to_fail);
+        } else {
+            error!("{}:\n\t{}", title, reason_to_fail);
+        }
+        TOTALFAIL.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+#[derive(Parser)]
+#[command(author, version, about)]
+struct Cli {
+    #[arg(short, long, default_value = "true")]
+    checks: bool,
+    #[arg(short, long, default_value = "false")]
+    exhaustive: bool,
+    #[arg(short, long, default_value = "false")]
+    plugins: bool,
+    #[arg(short, long, default_value = "false")]
+    speed: bool,
+    #[arg(short, long, default_value = "false")]
+    zoo: bool,
+}
+
+fn print_supported_intents() {
+    let mut intents: Vec<(u32, &str)> = Vec::with_capacity(200);
+
+    let n = DEFAULT_CONTEXT.get_supported_intents(200, &mut intents);
+
+    info!("Supported intents:");
+    for i in 0..n {
+        info!("\t{} - {}", intents[i].0, intents[i].1);
+    }
 }
 
 mod helpers;
