@@ -6,6 +6,8 @@ use crate::{
     to_fixed_domain, Result, S15Fixed16Number, MAX_INPUT_DIMENSIONS, MAX_STAGE_CHANNELS,
 };
 
+use paste::paste;
+
 #[derive(Clone)]
 pub struct InterpParams<'table, T>
 where
@@ -1074,3 +1076,91 @@ fn eval_4_inputs_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
         output[i] = y0 + (y1 - y0) * rest;
     }
 }
+
+macro_rules! eval_fns {
+    ($n:expr, $nm:expr) => {
+        paste!{
+            fn [<eval_ $n _inputs_u16>](input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
+                let mut tmp1 = [0u16; MAX_STAGE_CHANNELS];
+                let mut tmp2 = [0u16; MAX_STAGE_CHANNELS];
+
+                let fk = to_fixed_domain(p16.domain[0] as i32 * input[0] as i32);
+                let k0 = fixed_to_int(fk);
+                let rk = fixed_rest_to_int(fk);
+
+                let k0 = p16.opta[$nm] as i32 * k0;
+                let k1 = p16.opta[$nm] as i32 * (k0
+                    + (if input[0] == 0xffff {
+                        0
+                    } else {
+                        1
+                    }));
+
+                let mut p1 = p16.clone();
+                p1.domain.copy_within(1..$n, 0);
+
+                let t = &p16.table[(k0 as usize)..];
+                p1.table = t;
+
+                [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp1, &p1);
+
+                let t = &p16.table[(k1 as usize)..];
+                p1.table = t;
+
+                [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp2, &p1);
+
+                for i in 0..p16.n_outputs {
+                    output[i] = linear_interp_u16(rk, tmp1[i] as i32, tmp2[i] as i32);
+                }
+            }
+
+            fn [<eval_ $n _inputs_f32>](input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
+                let mut tmp1 = [0f32; MAX_STAGE_CHANNELS];
+                let mut tmp2 = [0f32; MAX_STAGE_CHANNELS];
+
+                let pk = fclamp(input[0]) * p.domain[0] as f32;
+                let k0 = quick_floor(pk as f64) as i32;
+                let rest = pk - k0 as f32;
+
+                let k0 = p.opta[$nm] as i32 * k0;
+                let k1 = p.opta[3] as i32 * (k0
+                    + (if fclamp(input[0]) >= 1f32 {
+                        0
+                    } else {
+                        1
+                    }));
+
+                let mut p1 = p.clone();
+                p1.domain.copy_within(1..$n, 0);
+
+                let t = &p.table[(k0 as usize)..];
+                p1.table = t;
+
+                [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp1, &p1);
+
+                let t = &p.table[(k1 as usize)..];
+                p1.table = t;
+
+                [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp2, &p1);
+
+                for i in 0..p.n_outputs {
+                    let y0 = tmp1[i];
+                    let y1 = tmp2[i];
+
+                    output[i] = y0 + (y1 - y0) * rest;
+                }
+            }
+        }
+    };
+}
+eval_fns!(5, 4);
+eval_fns!(6, 5);
+eval_fns!(7, 6);
+eval_fns!(8, 7);
+eval_fns!(9, 8);
+eval_fns!(10, 9);
+eval_fns!(11, 10);
+eval_fns!(12, 11);
+eval_fns!(13, 12);
+eval_fns!(14, 13);
+eval_fns!(15, 14);
