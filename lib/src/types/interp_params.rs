@@ -93,11 +93,11 @@ impl<'table, T: Copy> InterpParams<'table, T> {
     }
 }
 
-pub type InterpFn<T> = for<'table, 'a> fn(
+pub type InterpFn<T> = for<'a, 'b, 'c, 'table> fn(
     Input: &'a [T],
-    Output: &'a mut [T],
-    p: &'a InterpParams<'table, T>,
-) -> &'a [T];
+    Output: &'b mut [T],
+    p: &'c InterpParams<'table, T>,
+) -> &'b mut [T];
 
 #[derive(Clone)]
 pub enum InterpFunction {
