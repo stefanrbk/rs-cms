@@ -53,6 +53,24 @@ pub fn main() {
     check("Fixed point 8.8 representation", check_fixed_point_8_8);
     check("D50 roundtrip", check_d50_roundtrip);
 
+    if args.checks {
+        check("1D interpolation in 2pt tables", check_1d_lerp_2);
+        check("1D interpolation in 3pt tables", check_1d_lerp_3);
+        check("1D interpolation in 4pt tables", check_1d_lerp_4);
+        check("1D interpolation in 6pt tables", check_1d_lerp_6);
+        check("1D interpolation in 18pt tables", check_1d_lerp_18);
+        check("1D interpolation in descending 2pt tables", check_1d_lerp_2_down);
+        check("1D interpolation in descending 3pt tables", check_1d_lerp_3_down);
+        check("1D interpolation in descending 4pt tables", check_1d_lerp_4_down);
+        check("1D interpolation in descending 6pt tables", check_1d_lerp_6_down);
+        check("1D interpolation in descending 18pt tables", check_1d_lerp_18_down);
+
+        if args.exhaustive {
+            check("1D interpolation in n tables", exhaustive_check_1d_lerp);
+            check("1D interpolation in descending n tables", exhaustive_check_1d_lerp_down);
+        }
+    }
+
     exit(TOTALFAIL.load(Ordering::SeqCst) as i32)
 }
 
