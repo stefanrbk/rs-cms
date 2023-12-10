@@ -76,12 +76,6 @@ pub(crate) fn default_interpolators_factory(
     }
 }
 
-pub mod lerp_flags {
-    pub const BITS_16: u32 = 0x0000;
-    pub const FLOAT: u32 = 0x0001;
-    pub const TRILINEAR: u32 = 0x0100;
-}
-
 #[inline]
 fn linear_interp_u16(a: S15Fixed16Number, l: S15Fixed16Number, h: S15Fixed16Number) -> u16 {
     let dif = (h - l) as u32 * a as u32 + 0x8000;
@@ -1120,3 +1114,9 @@ eval_fns!(12, 11);
 eval_fns!(13, 12);
 eval_fns!(14, 13);
 eval_fns!(15, 14);
+
+pub mod lerp_flags {
+    pub const BITS_16: u32 = 0x0000;
+    pub const FLOAT: u32 = 0x0001;
+    pub const TRILINEAR: u32 = 0x0100;
+}
