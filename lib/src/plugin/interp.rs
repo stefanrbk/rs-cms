@@ -367,7 +367,7 @@ fn trilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>
         }
         macro_rules! lerp {
             ($a:expr, $l:expr, $h:expr) => {
-                ($l + round_fixed_to_int(($h - $l) * $a))
+                ($l + round_fixed_to_int(i32::wrapping_mul(($h - $l), $a)))
             };
         }
 
@@ -529,7 +529,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c3 = c3 - c2;
                 let c2 = c2 - c1;
                 let c1 = c1 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -545,7 +545,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c2 = c2 - c1;
                 let c1 = c1 - c3;
                 let c3 = c3 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -561,7 +561,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c2 = c2 - c3;
                 let c3 = c3 - c1;
                 let c1 = c1 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -579,7 +579,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c3 = c3 - c1;
                 let c1 = c1 - c2;
                 let c2 = c2 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -595,7 +595,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c1 = c1 - c3;
                 let c3 = c3 - c2;
                 let c2 = c2 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -611,7 +611,7 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c1 = c1 - c2;
                 let c2 = c2 - c3;
                 let c3 = c3 - c0;
-                let rest = c1 as i32 * rx + c2 as i32 * ry + c3 as i32 * rz + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }

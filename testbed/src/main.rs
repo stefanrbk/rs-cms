@@ -45,6 +45,9 @@ pub fn main() {
         }
         
         check("3D interpolation Tetrahedral (f32)", check_3d_interpolation_f32_tetrahedral);
+        check("3D interpolation Trilinear (f32)", check_3d_interpolation_f32_trilinear);
+        check("3D interpolation Tetrahedral (u16)", check_3d_interpolation_u16_tetrahedral);
+        check("3D interpolation Trilinear (u16)", check_3d_interpolation_u16_trilinear);
     }
 
     exit(TOTALFAIL.load(Ordering::SeqCst) as i32)
