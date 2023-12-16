@@ -1,4 +1,7 @@
-use std::ops::Deref;
+use std::{
+    ops::Deref,
+    time::{Duration, Instant},
+};
 
 use log::info;
 use rs_cms::{
@@ -8,7 +11,7 @@ use rs_cms::{
     Result,
 };
 
-use crate::helpers::{fail, is_good_fixed_15_16, MAX_ERR, is_good_word};
+use crate::helpers::{fail, is_good_fixed_15_16, is_good_word, MAX_ERR};
 
 fn build_table(n: usize, tab: &mut [u16], descending: bool) {
     for i in 0..n {
@@ -91,9 +94,12 @@ pub fn check_1d_lerp_18_down() -> Result<()> {
 }
 
 pub fn exhaustive_check_1d_lerp() -> Result<()> {
+    let mut start = Instant::now();
     for j in 10..4096 {
-        if (j % 100) == 0 {
-            info!("{}", j);
+        let now = Instant::now();
+        if (now - start) >= Duration::from_secs(2) {
+            info!("{:.0}%", j as f32 / 40.96f32);
+            start = now;
         }
 
         check_1d(j, false, 1)?
@@ -103,9 +109,12 @@ pub fn exhaustive_check_1d_lerp() -> Result<()> {
 }
 
 pub fn exhaustive_check_1d_lerp_down() -> Result<()> {
+    let mut start = Instant::now();
     for j in 10..4096 {
-        if (j % 100) == 0 {
-            info!("{}", j);
+        let now = Instant::now();
+        if (now - start) >= Duration::from_secs(2) {
+            info!("{:.0}%", j as f32 / 40.96f32);
+            start = now;
         }
 
         check_1d(j, false, 1)?
@@ -231,7 +240,14 @@ pub fn check_3d_interpolation_u16_trilinear() -> Result<()> {
         0xffffu16, 0xffffu16,
     ];
 
-    let p = InterpParams::compute(ctx, 2, 3, 3, &u16_table, lerp_flags::BITS_16|lerp_flags::TRILINEAR)?;
+    let p = InterpParams::compute(
+        ctx,
+        2,
+        3,
+        3,
+        &u16_table,
+        lerp_flags::BITS_16 | lerp_flags::TRILINEAR,
+    )?;
     *MAX_ERR.lock().unwrap() = 0f64;
     if let InterpFunction::U16(lerp) = p.interpolation {
         for i in 0..0xffff {
@@ -242,6 +258,206 @@ pub fn check_3d_interpolation_u16_trilinear() -> Result<()> {
             is_good_word("Channel 1", out[0], r#in[0])?;
             is_good_word("Channel 2", out[1], r#in[1])?;
             is_good_word("Channel 3", out[2], r#in[2])?;
+        }
+
+        let err = *MAX_ERR.lock().unwrap();
+        if err > 0f64 {
+            info!("|Err| {}", err);
+        }
+
+        return Ok(());
+    } else {
+        return Err("Invalid interpolation function");
+    }
+}
+
+pub fn exhaustive_check_3d_interpolation_f32_tetrahedral() -> Result<()> {
+    let ctx: &Context = &DEFAULT_CONTEXT;
+    let mut out = [0f32; 3];
+
+    let f32_table = [
+        0f32, 0f32, 0f32, 0f32, 0f32, 0.25f32, 0f32, 0.5f32, 0f32, 0f32, 0.5f32, 0.25f32, 1f32,
+        0f32, 0f32, 1f32, 0f32, 0.25f32, 1f32, 0.5f32, 0f32, 1f32, 0.5f32, 0.25f32,
+    ];
+
+    let p = InterpParams::compute(ctx, 2, 3, 3, &f32_table, lerp_flags::FLOAT)?;
+    *MAX_ERR.lock().unwrap() = 0f64;
+    if let InterpFunction::F32(lerp) = p.interpolation {
+        let mut start = Instant::now();
+        for r in 0..0xff {
+            for g in 0..0xff {
+                for b in 0..0xff {
+                    let now = Instant::now();
+                    if now - start >= Duration::from_secs(2) {
+                        info!(
+                            "{:.0}%",
+                            (r * 0x10000 + g * 0x100 + b) as f64 / 0xffffff as f64 * 100f64
+                        );
+                        start = now
+                    }
+                    let r#in = [r as f32 / 255f32, g as f32 / 255f32, b as f32 / 255f32];
+
+                    lerp(&r#in, &mut out, &p);
+
+                    is_good_fixed_15_16("Channel 1", out[0] as f64, r#in[0] as f64)?;
+                    is_good_fixed_15_16("Channel 2", out[1] as f64, (r#in[1] / 2f32) as f64)?;
+                    is_good_fixed_15_16("Channel 3", out[2] as f64, (r#in[2] / 4f32) as f64)?;
+                }
+            }
+        }
+
+        let err = *MAX_ERR.lock().unwrap();
+        if err > 0f64 {
+            info!("|Err| {}", err);
+        }
+
+        return Ok(());
+    } else {
+        return Err("Invalid interpolation function");
+    }
+}
+
+pub fn exhaustive_check_3d_interpolation_f32_trilinear() -> Result<()> {
+    let ctx: &Context = &DEFAULT_CONTEXT;
+    let mut out = [0f32; 3];
+
+    let f32_table = [
+        0f32, 0f32, 0f32, 0f32, 0f32, 0.25f32, 0f32, 0.5f32, 0f32, 0f32, 0.5f32, 0.25f32, 1f32,
+        0f32, 0f32, 1f32, 0f32, 0.25f32, 1f32, 0.5f32, 0f32, 1f32, 0.5f32, 0.25f32,
+    ];
+
+    let p = InterpParams::compute(
+        ctx,
+        2,
+        3,
+        3,
+        &f32_table,
+        lerp_flags::FLOAT | lerp_flags::TRILINEAR,
+    )?;
+    *MAX_ERR.lock().unwrap() = 0f64;
+    if let InterpFunction::F32(lerp) = p.interpolation {
+        let mut start = Instant::now();
+        for r in 0..0xff {
+            for g in 0..0xff {
+                for b in 0..0xff {
+                    let now = Instant::now();
+                    if now - start >= Duration::from_secs(2) {
+                        info!(
+                            "{:.0}%",
+                            (r * 0x10000 + g * 0x100 + b) as f64 / 0xffffff as f64 * 100f64
+                        );
+                        start = now
+                    }
+                    let r#in = [r as f32 / 255f32, g as f32 / 255f32, b as f32 / 255f32];
+
+                    lerp(&r#in, &mut out, &p);
+
+                    is_good_fixed_15_16("Channel 1", out[0] as f64, r#in[0] as f64)?;
+                    is_good_fixed_15_16("Channel 2", out[1] as f64, (r#in[1] / 2f32) as f64)?;
+                    is_good_fixed_15_16("Channel 3", out[2] as f64, (r#in[2] / 4f32) as f64)?;
+                }
+            }
+        }
+
+        let err = *MAX_ERR.lock().unwrap();
+        if err > 0f64 {
+            info!("|Err| {}", err);
+        }
+
+        return Ok(());
+    } else {
+        return Err("Invalid interpolation function");
+    }
+}
+
+pub fn exhaustive_check_3d_interpolation_u16_tetrahedral() -> Result<()> {
+    let ctx: &Context = &DEFAULT_CONTEXT;
+    let mut out = [0u16; 3];
+
+    let u16_table = [
+        0u16, 0u16, 0u16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0u16, 0u16, 0xffffu16, 0xffffu16,
+        0xffffu16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0xffffu16, 0xffffu16, 0u16, 0xffffu16,
+        0xffffu16, 0xffffu16,
+    ];
+
+    let p = InterpParams::compute(ctx, 2, 3, 3, &u16_table, lerp_flags::BITS_16)?;
+    *MAX_ERR.lock().unwrap() = 0f64;
+    if let InterpFunction::U16(lerp) = p.interpolation {
+        let mut start = Instant::now();
+        for r in 0..0xff {
+            for g in 0..0xff {
+                for b in 0..0xff {
+                    let now = Instant::now();
+                    if now - start >= Duration::from_secs(2) {
+                        info!(
+                            "{:.0}%",
+                            (r * 0x10000 + g * 0x100 + b) as f64 / 0xffffff as f64 * 100f64
+                        );
+                        start = now
+                    }
+                    let r#in = [r as u16, g as u16, b as u16];
+
+                    lerp(&r#in, &mut out, &p);
+
+                    is_good_word("Channel 1", out[0], r#in[0])?;
+                    is_good_word("Channel 2", out[1], r#in[1])?;
+                    is_good_word("Channel 3", out[2], r#in[2])?;
+                }
+            }
+        }
+
+        let err = *MAX_ERR.lock().unwrap();
+        if err > 0f64 {
+            info!("|Err| {}", err);
+        }
+
+        return Ok(());
+    } else {
+        return Err("Invalid interpolation function");
+    }
+}
+
+pub fn exhaustive_check_3d_interpolation_u16_trilinear() -> Result<()> {
+    let ctx: &Context = &DEFAULT_CONTEXT;
+    let mut out = [0u16; 3];
+
+    let u16_table = [
+        0u16, 0u16, 0u16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0u16, 0u16, 0xffffu16, 0xffffu16,
+        0xffffu16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0xffffu16, 0xffffu16, 0u16, 0xffffu16,
+        0xffffu16, 0xffffu16,
+    ];
+
+    let p = InterpParams::compute(
+        ctx,
+        2,
+        3,
+        3,
+        &u16_table,
+        lerp_flags::BITS_16 | lerp_flags::TRILINEAR,
+    )?;
+    *MAX_ERR.lock().unwrap() = 0f64;
+    if let InterpFunction::U16(lerp) = p.interpolation {
+        let mut start = Instant::now();
+        for r in 0..0xff {
+            for g in 0..0xff {
+                for b in 0..0xff {
+                    let now = Instant::now();
+                    if now - start >= Duration::from_secs(2) {
+                        info!(
+                            "{:.0}%",
+                            (r * 0x10000 + g * 0x100 + b) as f64 / 0xffffff as f64 * 100f64
+                        );
+                        start = now
+                    }
+                    let r#in = [r as u16, g as u16, b as u16];
+
+                    lerp(&r#in, &mut out, &p);
+
+                    is_good_word("Channel 1", out[0], r#in[0])?;
+                    is_good_word("Channel 2", out[1], r#in[1])?;
+                    is_good_word("Channel 3", out[2], r#in[2])?;
+                }
+            }
         }
 
         let err = *MAX_ERR.lock().unwrap();
