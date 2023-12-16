@@ -4,11 +4,11 @@ use log::info;
 use rs_cms::{
     plugin::lerp_flags,
     state::{Context, DEFAULT_CONTEXT},
-    types::{InterpParams, InterpFunction},
+    types::{InterpFunction, InterpParams},
     Result,
 };
 
-use crate::helpers::fail;
+use crate::helpers::{fail, is_good_fixed_15_16, MAX_ERR};
 
 fn build_table(n: usize, tab: &mut [u16], descending: bool) {
     for i in 0..n {
@@ -21,7 +21,7 @@ fn build_table(n: usize, tab: &mut [u16], descending: bool) {
 fn check_1d(nodes_to_check: usize, down: bool, max_err: u32) -> Result<()> {
     let ctx: &Context = &DEFAULT_CONTEXT;
     let mut tab = vec![0u16; nodes_to_check];
-    
+
     build_table(nodes_to_check, &mut tab, down);
 
     let p = InterpParams::compute(ctx, nodes_to_check, 1, 1, &tab, lerp_flags::BITS_16)?;
@@ -29,18 +29,21 @@ fn check_1d(nodes_to_check: usize, down: bool, max_err: u32) -> Result<()> {
         for i in 0..0xffff {
             let r#in = [i as u16];
             let mut out = [0u16];
-    
+
             lerp(&r#in, &mut out, &p);
             if down {
                 out[0] = 0xffff - out[0];
             }
 
             if (out[0] as i32).abs_diff(r#in[0] as i32) > max_err {
-                fail(&format!("({}): Must be {}, but is {}", nodes_to_check, r#in[0], out[0]));
+                fail(&format!(
+                    "({}): Must be {}, but is {}",
+                    nodes_to_check, r#in[0], out[0]
+                ));
                 return Err("Result outside range");
             }
         }
-    
+
         return Ok(());
     }
 
@@ -109,4 +112,37 @@ pub fn exhaustive_check_1d_lerp_down() -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn check_3d_interpolation_f32_tetrahedral() -> Result<()> {
+    let ctx: &Context = &DEFAULT_CONTEXT;
+    let mut out = [0f32; 3];
+
+    let f32_table = [
+        0f32, 0f32, 0f32, 0f32, 0f32, 0.25f32, 0f32, 0.5f32, 0f32, 0f32, 0.5f32, 0.25f32, 1f32,
+        0f32, 0f32, 1f32, 0f32, 0.25f32, 1f32, 0.5f32, 0f32, 1f32, 0.5f32, 0.25f32,
+    ];
+
+    let p = InterpParams::compute(ctx, 2, 3, 3, &f32_table, lerp_flags::FLOAT)?;
+    *MAX_ERR.lock().unwrap() = 0f64;
+    if let InterpFunction::F32(lerp) = p.interpolation {
+        for i in 0..0xffff {
+            let r#in = [i as f32 / 65535f32; 3];
+
+            lerp(&r#in, &mut out, &p);
+
+            is_good_fixed_15_16("Channel 1", out[0] as f64, r#in[0] as f64)?;
+            is_good_fixed_15_16("Channel 2", out[1] as f64, (r#in[1] / 2f32) as f64)?;
+            is_good_fixed_15_16("Channel 3", out[2] as f64, (r#in[2] / 4f32) as f64)?;
+        }
+
+        let err = *MAX_ERR.lock().unwrap();
+        if err > 0f64 {
+            info!("|Err| {}", err);
+        }
+
+        return Ok(());
+    } else {
+        return Err("Invalid interpolation function");
+    }
 }

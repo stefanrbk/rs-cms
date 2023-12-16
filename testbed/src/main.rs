@@ -43,6 +43,8 @@ pub fn main() {
             check("1D interpolation in n tables", exhaustive_check_1d_lerp);
             check("1D interpolation in descending n tables", exhaustive_check_1d_lerp_down);
         }
+        
+        check("3D interpolation Tetrahedral (f32)", check_3d_interpolation_f32_tetrahedral);
     }
 
     exit(TOTALFAIL.load(Ordering::SeqCst) as i32)

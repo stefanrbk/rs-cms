@@ -619,8 +619,8 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
     }
 }
 macro_rules! dens {
-    ($lut_table:expr, $out_chan:expr; $i:expr, $j:expr, $k:expr) => {
-        $lut_table[($i + $j + $k) as usize + $out_chan] as i32
+    ($type:ty => $lut_table:expr, $out_chan:expr; $i:expr, $j:expr, $k:expr) => {
+        $lut_table[($i + $j + $k) as usize + $out_chan] as $type
     };
 }
 
@@ -629,9 +629,9 @@ macro_rules! lut_u16 {
         {$rx:expr, $ry:expr, $rz:expr; $x0:expr, $y0:expr, $z0:expr},
         $({$($c_x_:expr, $c_y_:expr, $c_z_:expr);*}),*) => {
             for out_chan in 0..$total_out {
-                let c0 = dens!($lut, out_chan; $x0, $y0, $z0);
+                let c0 = dens!(i32 => $lut, out_chan; $x0, $y0, $z0);
 
-                let (c1, c2, c3) = _lut!(($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
+                let (c1, c2, c3) = _lut!(i32 => ($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
 
                 let rest = c1 * $rx + c2 * $ry + c3 * $rz;
                 $output[out_chan] = (c0 + round_fixed_to_int(to_fixed_domain(rest))) as u16;
@@ -644,9 +644,9 @@ macro_rules! lut_f32 {
         {$rx:expr, $ry:expr, $rz:expr; $x0:expr, $y0:expr, $z0:expr},
         $({$($c_x_:expr, $c_y_:expr, $c_z_:expr);*}),*) => {
             for out_chan in 0..$total_out {
-                let c0 = dens!($lut, out_chan; $x0, $y0, $z0);
+                let c0 = dens!(f32 => $lut, out_chan; $x0, $y0, $z0);
 
-                let (c1, c2, c3) = _lut!(($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
+                let (c1, c2, c3) = _lut!(f32 => ($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
 
                 $output[out_chan] = c0 as f32 + c1 as f32 * $rx + c2 as f32 * $ry + c3 as f32 * $rz;
             }
@@ -654,29 +654,29 @@ macro_rules! lut_f32 {
 }
 
 macro_rules! _lut {
-    (($lut:expr, $out_chan:expr, $c0:expr) =>
+    ($type:ty => ($lut:expr, $out_chan:expr, $c0:expr) =>
         {$c1x1:expr, $c1y1:expr, $c1z1:expr},
         {$c2x1:expr, $c2y1:expr, $c2z1:expr; $c2x2:expr, $c2y2:expr, $c2z2:expr},
         {$c3x1:expr, $c3y1:expr, $c3z1:expr; $c3x2:expr, $c3y2:expr, $c3z2:expr}) => {
-            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - $c0,
-                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($lut, $out_chan; $c2x2, $c2y2, $c2z2),
-                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($lut, $out_chan; $c3x2, $c3y2, $c3z2))
+            (dens!($type => $lut, $out_chan; $c1x1, $c1y1, $c1z1) - $c0,
+                dens!($type => $lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($type => $lut, $out_chan; $c2x2, $c2y2, $c2z2),
+                dens!($type => $lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($type => $lut, $out_chan; $c3x2, $c3y2, $c3z2))
         };
-        (($lut:expr, $out_chan:expr, $c0:expr) =>
+        ($type:ty => ($lut:expr, $out_chan:expr, $c0:expr) =>
         {$c1x1:expr, $c1y1:expr, $c1z1:expr; $c1x2:expr, $c1y2:expr, $c1z2:expr},
         {$c2x1:expr, $c2y1:expr, $c2z1:expr},
         {$c3x1:expr, $c3y1:expr, $c3z1:expr; $c3x2:expr, $c3y2:expr, $c3z2:expr}) => {
-            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($lut, $out_chan; $c1x2, $c1y2, $c1z2),
-                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - $c0,
-                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($lut, $out_chan; $c3x2, $c3y2, $c3z2))
+            (dens!($type => $lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($type => $lut, $out_chan; $c1x2, $c1y2, $c1z2),
+                dens!($type => $lut, $out_chan; $c2x1, $c2y1, $c2z1) - $c0,
+                dens!($type => $lut, $out_chan; $c3x1, $c3y1, $c3z1) - dens!($type => $lut, $out_chan; $c3x2, $c3y2, $c3z2))
     };
-    (($lut:expr, $out_chan:expr, $c0:expr) =>
+    ($type:ty => ($lut:expr, $out_chan:expr, $c0:expr) =>
         {$c1x1:expr, $c1y1:expr, $c1z1:expr; $c1x2:expr, $c1y2:expr, $c1z2:expr},
         {$c2x1:expr, $c2y1:expr, $c2z1:expr; $c2x2:expr, $c2y2:expr, $c2z2:expr},
         {$c3x1:expr, $c3y1:expr, $c3z1:expr}) => {
-            (dens!($lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($lut, $out_chan; $c1x2, $c1y2, $c1z2),
-                dens!($lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($lut, $out_chan; $c2x2, $c2y2, $c2z2),
-                dens!($lut, $out_chan; $c3x1, $c3y1, $c3z1) - $c0)
+            (dens!($type => $lut, $out_chan; $c1x1, $c1y1, $c1z1) - dens!($type => $lut, $out_chan; $c1x2, $c1y2, $c1z2),
+                dens!($type => $lut, $out_chan; $c2x1, $c2y1, $c2z1) - dens!($type => $lut, $out_chan; $c2x2, $c2y2, $c2z2),
+                dens!($type => $lut, $out_chan; $c3x1, $c3y1, $c3z1) - $c0)
     };
 }
 
