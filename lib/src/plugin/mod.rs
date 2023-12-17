@@ -80,7 +80,7 @@ pub use formatter::{
     FormatterIn, FormatterIn16, FormatterInFactory, FormatterInFloat, FormatterOut, FormatterOut16,
     FormatterOutFactory, FormatterOutFloat, FormatterPlugin,
 };
-pub use interp::InterpFnFactory;
+pub use interp::{InterpFnFactory, lerp_flags};
 pub use optimization::OptimizationFn;
 pub use parallel::ParallelizationPlugin;
 pub use rendering_intent::IntentFn;

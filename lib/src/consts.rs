@@ -17,3 +17,5 @@ pub const MAX_INPUT_DIMENSIONS: usize = 15;
 pub const MAX_TYPES_IN_PLUGIN: usize = 20;
 
 pub const PTR_ALIGNMENT: usize = size_of::<usize>();
+
+pub(crate) const MAX_STAGE_CHANNELS: usize = 128;

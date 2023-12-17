@@ -12,7 +12,7 @@ rust-version = "1.76.0"
 
 [dependencies]
 chrono = "0.4.31"
-clap = { version = "4.4.8", features = ["derive"] }
+clap = { version = "4.4.8", features = ["cargo"] }
 rs-cms = { version = "0.1.0", path = "../lib" }
 log = "0.4.20"
 simple_logger = "4.3.0"

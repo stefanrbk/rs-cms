@@ -125,6 +125,10 @@ impl Context {
 
         num_intents
     }
+
+    pub fn get_interp_factory(&self) -> InterpFnFactory {
+        self.0.interp_factory
+    }
 }
 
 impl Default for Context {
