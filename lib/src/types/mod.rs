@@ -6,6 +6,7 @@ mod position;
 mod profile;
 mod response;
 mod signature;
+mod stage;
 mod transform;
 mod xyz;
 
@@ -17,5 +18,6 @@ pub use position::PositionNumber;
 pub use profile::Profile;
 pub use response::ResponseNumber;
 pub use signature::Signature;
+pub use stage::{Stage, StageDupFn, StageEvalFn};
 pub use transform::*;
 pub use xyz::{XYZNumber, XYZ};
