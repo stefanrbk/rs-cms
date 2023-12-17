@@ -1,7 +1,7 @@
 use std::{process::exit, sync::atomic::Ordering};
 
 use clap::{
-    builder::ValueParserFactory, crate_authors, crate_version, value_parser, Arg, ArgAction,
+    crate_authors, crate_version, value_parser, Arg, ArgAction,
     Command,
 };
 use log::{error, info, Level};
