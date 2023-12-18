@@ -24,7 +24,7 @@ fn check_1d(nodes_to_check: usize, down: bool, max_err: u32) -> Result<()> {
 
     build_table(nodes_to_check, &mut tab, down);
 
-    let p = InterpParams::compute(ctx, nodes_to_check, 1, 1, &tab, lerp_flags::BITS_16)?;
+    let p = InterpParams::compute(ctx, nodes_to_check, 1, 1, tab.into_boxed_slice(), lerp_flags::BITS_16)?;
     if let InterpFunction::U16(lerp) = p.interpolation {
         for i in 0..0xffff {
             let r#in = [i as u16];
@@ -129,7 +129,7 @@ pub fn check_3d_interpolation_f32_tetrahedral() -> Result<()> {
         0f32, 0f32, 1f32, 0f32, 0.25f32, 1f32, 0.5f32, 0f32, 1f32, 0.5f32, 0.25f32,
     ];
 
-    let p = InterpParams::compute(ctx, 2, 3, 3, &f32_table, lerp_flags::FLOAT)?;
+    let p = InterpParams::compute(ctx, 2, 3, 3, Box::new(f32_table), lerp_flags::FLOAT)?;
     *MAX_ERR.lock().unwrap() = 0f64;
     if let InterpFunction::F32(lerp) = p.interpolation {
         for i in 0..0xffff {
@@ -167,7 +167,7 @@ pub fn check_3d_interpolation_f32_trilinear() -> Result<()> {
         2,
         3,
         3,
-        &f32_table,
+        Box::new(f32_table),
         lerp_flags::FLOAT | lerp_flags::TRILINEAR,
     )?;
     *MAX_ERR.lock().unwrap() = 0f64;
@@ -203,7 +203,7 @@ pub fn check_3d_interpolation_u16_tetrahedral() -> Result<()> {
         0xffffu16, 0xffffu16,
     ];
 
-    let p = InterpParams::compute(ctx, 2, 3, 3, &u16_table, lerp_flags::BITS_16)?;
+    let p = InterpParams::compute(ctx, 2, 3, 3, Box::new(u16_table), lerp_flags::BITS_16)?;
     *MAX_ERR.lock().unwrap() = 0f64;
     if let InterpFunction::U16(lerp) = p.interpolation {
         for i in 0..0xffff {
@@ -242,7 +242,7 @@ pub fn check_3d_interpolation_u16_trilinear() -> Result<()> {
         2,
         3,
         3,
-        &u16_table,
+        Box::new(u16_table),
         lerp_flags::BITS_16 | lerp_flags::TRILINEAR,
     )?;
     *MAX_ERR.lock().unwrap() = 0f64;
@@ -277,7 +277,7 @@ pub fn exhaustive_check_3d_interpolation_f32_tetrahedral() -> Result<()> {
         0f32, 0f32, 1f32, 0f32, 0.25f32, 1f32, 0.5f32, 0f32, 1f32, 0.5f32, 0.25f32,
     ];
 
-    let p = InterpParams::compute(ctx, 2, 3, 3, &f32_table, lerp_flags::FLOAT)?;
+    let p = InterpParams::compute(ctx, 2, 3, 3, Box::new(f32_table), lerp_flags::FLOAT)?;
     *MAX_ERR.lock().unwrap() = 0f64;
     if let InterpFunction::F32(lerp) = p.interpolation {
         let mut start = Instant::now();
@@ -328,7 +328,7 @@ pub fn exhaustive_check_3d_interpolation_f32_trilinear() -> Result<()> {
         2,
         3,
         3,
-        &f32_table,
+        Box::new(f32_table),
         lerp_flags::FLOAT | lerp_flags::TRILINEAR,
     )?;
     *MAX_ERR.lock().unwrap() = 0f64;
@@ -377,7 +377,7 @@ pub fn exhaustive_check_3d_interpolation_u16_tetrahedral() -> Result<()> {
         0xffffu16, 0xffffu16,
     ];
 
-    let p = InterpParams::compute(ctx, 2, 3, 3, &u16_table, lerp_flags::BITS_16)?;
+    let p = InterpParams::compute(ctx, 2, 3, 3, Box::new(u16_table), lerp_flags::BITS_16)?;
     *MAX_ERR.lock().unwrap() = 0f64;
     if let InterpFunction::U16(lerp) = p.interpolation {
         let mut start = Instant::now();
@@ -429,7 +429,7 @@ pub fn exhaustive_check_3d_interpolation_u16_trilinear() -> Result<()> {
         2,
         3,
         3,
-        &u16_table,
+        Box::new(u16_table),
         lerp_flags::BITS_16 | lerp_flags::TRILINEAR,
     )?;
     *MAX_ERR.lock().unwrap() = 0f64;

@@ -1010,12 +1010,12 @@ fn eval_4_inputs_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
     p1.domain.copy_within(1..4, 0);
 
     let t = &p.table[(k0 as usize)..];
-    p1.table = t;
+    p1.table = t.into();
 
     tetrahedral_interp_f32(&input[1..], &mut tmp1, &p1);
 
     let t = &p.table[(k1 as usize)..];
-    p1.table = t;
+    p1.table = t.into();
 
     tetrahedral_interp_f32(&input[1..], &mut tmp2, &p1);
 
@@ -1050,12 +1050,12 @@ macro_rules! eval_fns {
                 p1.domain.copy_within(1..$n, 0);
 
                 let t = &p16.table[(k0 as usize)..];
-                p1.table = t;
+                p1.table = t.into();
 
                 [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp1, &p1);
 
                 let t = &p16.table[(k1 as usize)..];
-                p1.table = t;
+                p1.table = t.into();
 
                 [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp2, &p1);
 
@@ -1084,12 +1084,12 @@ macro_rules! eval_fns {
                 p1.domain.copy_within(1..$n, 0);
 
                 let t = &p.table[(k0 as usize)..];
-                p1.table = t;
+                p1.table = t.into();
 
                 [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp1, &p1);
 
                 let t = &p.table[(k1 as usize)..];
-                p1.table = t;
+                p1.table = t.into();
 
                 [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp2, &p1);
 

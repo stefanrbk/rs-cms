@@ -9,7 +9,7 @@ use crate::{
 use paste::paste;
 
 #[derive(Clone)]
-pub struct InterpParams<'table, T>
+pub struct InterpParams<T>
 where
     T: Copy,
 {
@@ -20,17 +20,17 @@ where
     pub n_samples: [usize; MAX_INPUT_DIMENSIONS],
     pub domain: [usize; MAX_INPUT_DIMENSIONS],
     pub opta: [usize; MAX_INPUT_DIMENSIONS],
-    pub table: &'table [T],
+    pub table: Box<[T]>,
     pub interpolation: InterpFunction,
 }
 
-impl<'table, T: Copy> InterpParams<'table, T> {
+impl<T: Copy> InterpParams<T> {
     pub fn compute_ex(
         context_id: &Context,
         n_samples: &[usize],
         input_chan: usize,
         output_chan: usize,
-        table: &'table [T],
+        table: Box<[T]>,
         flags: u32,
     ) -> Result<Self> {
         // Check for maximum inputs
@@ -78,7 +78,7 @@ impl<'table, T: Copy> InterpParams<'table, T> {
         n_samples: usize,
         input_chan: usize,
         output_chan: usize,
-        table: &'table [T],
+        table: Box<[T]>,
         flags: u32,
     ) -> Result<Self> {
         let n_samples = [n_samples; MAX_INPUT_DIMENSIONS];
@@ -94,7 +94,7 @@ impl<'table, T: Copy> InterpParams<'table, T> {
 }
 
 pub type InterpFn<T> =
-    for<'a, 'b, 'c, 'table> fn(Input: &'a [T], Output: &'b mut [T], p: &'c InterpParams<'table, T>);
+    for<'a, 'b, 'c> fn(Input: &'a [T], Output: &'b mut [T], p: &'c InterpParams<T>);
 
 #[derive(Clone)]
 pub enum InterpFunction {
