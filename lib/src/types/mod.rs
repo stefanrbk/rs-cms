@@ -1,3 +1,4 @@
+mod curve;
 mod date_time;
 mod format;
 mod interp_params;
