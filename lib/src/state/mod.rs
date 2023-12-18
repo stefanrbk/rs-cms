@@ -23,6 +23,16 @@ pub struct ParametricCurve {
     pub eval: ParametricCurveEvaluator,
 }
 
+impl ParametricCurve {
+    pub(crate) fn is_in_set(&self, r#type: i32) -> isize {
+        for i in 0..self.curves.len() {
+            if r#type.abs() as u32 == self.curves[i].fn_type { return i as isize }
+        }
+
+        -1
+    }
+}
+
 impl PartialEq for ParametricCurve {
     fn eq(&self, other: &Self) -> bool {
         if self.curves.len() == other.curves.len() && self.eval == other.eval {

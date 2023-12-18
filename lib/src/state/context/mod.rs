@@ -129,6 +129,20 @@ impl Context {
     pub fn get_interp_factory(&self) -> InterpFnFactory {
         self.0.interp_factory
     }
+
+    pub(crate) fn get_parametric_curve_by_type(&self, r#type: i32) -> Option<(&ParametricCurve, usize)> {
+        let ctx = &self.0.curves;
+
+        for curve in ctx {
+            let pos = curve.is_in_set(r#type);
+
+            if pos != -1 {
+                return Some((curve, pos as usize));
+            }
+        }
+        
+        None
+    }
 }
 
 impl Default for Context {
