@@ -1,3 +1,13 @@
+/// # Examples
+/// ```rust
+/// err!(context_id, Error, File, "File open error: {}", error; io => error);
+/// ```
+/// ```rust
+/// err!(str => "This is an Err");
+/// ```
+/// ```rust
+/// err!(io => InvalidInput, "Path is invalid"),
+/// ```
 macro_rules! err {
     (str => $s:tt) => { {
             Err($s)
