@@ -19,3 +19,5 @@ pub const MAX_TYPES_IN_PLUGIN: usize = 20;
 pub const PTR_ALIGNMENT: usize = size_of::<usize>();
 
 pub(crate) const MAX_STAGE_CHANNELS: usize = 128;
+
+pub(crate) const MATRIX_DET_TOLERANCE: f64 = 1e-4f64;
