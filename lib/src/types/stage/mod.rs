@@ -15,5 +15,7 @@ pub struct Stage {
     out_chans: usize,
     eval: StageEvalFn,
     dup: StageDupFn,
-    data: Box<dyn Any>
+    data: Box<dyn Any>,
 }
+
+mod curve;
