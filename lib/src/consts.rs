@@ -21,3 +21,6 @@ pub const PTR_ALIGNMENT: usize = size_of::<usize>();
 pub(crate) const MAX_STAGE_CHANNELS: usize = 128;
 
 pub(crate) const MATRIX_DET_TOLERANCE: f64 = 1e-4f64;
+pub(crate) const MAX_NODES_IN_CURVE: usize = 4097;
+pub(crate) const MINUS_INF: f64 = -1e22f64;
+pub(crate) const PLUS_INF: f64 = 1e22f64;

@@ -1,10 +1,6 @@
-use crate::{state::ParametricCurve, MATRIX_DET_TOLERANCE};
+use crate::{state::ParametricCurve, MATRIX_DET_TOLERANCE, PLUS_INF};
 
 use super::Plugin;
-
-const MAX_NODES_IN_CURVE: usize = 4097;
-const MINUS_INF: f64 = -1e22f64;
-const PLUS_INF: f64 = 1e22f64;
 
 pub type ParametricCurveEvaluator = fn(r#type: i32, params: &[f64], r: f64) -> f64;
 
