@@ -18,9 +18,6 @@ pub struct Stage {
     pub(crate) data: Box<dyn Any>,
 }
 
-mod curve;
-mod matrix;
-
 impl Stage {
     fn new(
         context_id: &Context,
@@ -148,3 +145,6 @@ fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
         out[i] = i as f32 / 65535f32;
     }
 }
+
+mod curve;
+mod matrix;
