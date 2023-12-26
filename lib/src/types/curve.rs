@@ -1,17 +1,21 @@
-use std::default;
+use std::{
+    default,
+    sync::{Arc, Mutex},
+};
 
 use crate::{
     plugin::{lerp_flags, ParametricCurveEvaluator},
+    quantize_val, quick_saturate_word,
     state::Context,
-    Result,
+    Result, MAX_NODES_IN_CURVE, MINUS_INF, PLUS_INF,
 };
 
-use super::InterpParams;
+use super::{InterpFunction::F32, InterpParams};
 
 pub struct Curve {
     pub(crate) interp_params: InterpParams<u16>,
     pub(crate) segments: Box<[CurveSegment]>,
-    pub(crate) seg_interp: Box<[Option<InterpParams<f32>>]>,
+    pub(crate) seg_interp: Box<[Option<Mutex<InterpParams<f32>>>]>,
     pub(crate) evals: Box<[Option<ParametricCurveEvaluator>]>,
     pub(crate) table: Box<[u16]>,
 }
@@ -40,7 +44,7 @@ impl Curve {
 
         let mut s: Vec<CurveSegment> = Vec::with_capacity(n_segments);
         let mut e: Vec<Option<ParametricCurveEvaluator>> = Vec::with_capacity(n_segments);
-        let mut si: Vec<Option<InterpParams<f32>>> = Vec::with_capacity(n_segments);
+        let mut si: Vec<Option<Mutex<InterpParams<f32>>>> = Vec::with_capacity(n_segments);
 
         let mut t: Vec<u16> = Vec::with_capacity(n_entries);
 
@@ -51,14 +55,14 @@ impl Curve {
         for i in 0..n_segments {
             // Type 0 is a special marker for table-based curves
             si.push(if segments[i].r#type == 0 {
-                Some(InterpParams::compute(
+                Some(Mutex::new(InterpParams::compute(
                     context_id,
-                    segments[i].n_grid_points,
+                    segments[i].sampled_points.lock().unwrap().len(),
                     1,
                     1,
                     Box::new([]),
                     lerp_flags::FLOAT,
-                )?)
+                )?))
             } else {
                 None
             });
@@ -82,7 +86,7 @@ impl Curve {
             t.into_boxed_slice(),
             lerp_flags::BITS_16,
         )?;
-        
+
         Ok(Self {
             interp_params: ip,
             segments: s.into_boxed_slice(),
@@ -99,6 +103,5 @@ pub struct CurveSegment {
     pub x1: f32,
     pub r#type: i32,
     pub params: [f64; 10],
-    pub n_grid_points: usize,
-    pub sampled_points: Box<[f32]>,
+    pub sampled_points: Arc<Mutex<Box<[f32]>>>,
 }
