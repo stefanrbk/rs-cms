@@ -29,12 +29,12 @@ impl Stage {
         }
     }
 
-    // fn eval_curves(&self, r#in: &[f32], out: &mut [f32]) {
-    //     if let Some(data) = self.get_curve_set() {
-    //         let n_curves = data.len();
-    //         for i in 0..n_curves {
-    //             out[i] = data[i].
-    //         }
-    //     }
-    // }
+    fn eval_curves(&self, r#in: &[f32], out: &mut [f32]) {
+        if let Some(data) = self.get_curve_set() {
+            let n_curves = data.len();
+            for i in 0..n_curves {
+                out[i] = data[i].eval_f32(r#in[i]);
+            }
+        }
+    }
 }
