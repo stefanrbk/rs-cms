@@ -178,7 +178,11 @@ impl Stage {
 
         let new_elem = StageMatrix {
             double: matrix[..n].into(),
-            offset: if offset.len() == 0 { Box::default() } else { offset[..rows].into() },
+            offset: if offset.len() == 0 {
+                Box::default()
+            } else {
+                offset[..rows].into()
+            },
         };
 
         Ok(Self::new(
@@ -207,5 +211,6 @@ fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
     }
 }
 
+mod clut;
 mod curve;
 mod matrix;
