@@ -537,6 +537,12 @@ impl Curve {
     }
 }
 
+impl Clone for Curve {
+    fn clone(&self) -> Self {
+        self.dup().unwrap()
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct CurveSegment {
     pub x0: f32,
