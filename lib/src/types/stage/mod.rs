@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{sig, state::Context, types::stage::curve::StageCurve, Result};
+use crate::{sig, state::Context, types::stage::curve::StageCurve, Result, quick_saturate_word};
 
 use super::{curve::Curve, Signature};
 
@@ -128,5 +128,19 @@ impl Stage {
             dup: Self::dup_curve_set,
             data: Box::new(new_elem),
         })
+    }
+}
+
+fn from_f32_to_u16(r#in: &[f32], out: &mut [u16]) {
+    let len = r#in.len();
+    for i in 0..len {
+        out[i] = quick_saturate_word(i as f64 * 65535f64);
+    }
+}
+
+fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
+    let len = r#in.len();
+    for i in 0..len {
+        out[i] = i as f32 / 65535f32;
     }
 }
