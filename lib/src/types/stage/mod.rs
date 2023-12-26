@@ -8,14 +8,14 @@ pub type StageEvalFn = fn(stage: &Stage, r#in: &[f32], out: &mut [f32]);
 pub type StageDupFn = fn(stage: &Stage) -> Result<Box<dyn Any>>;
 
 pub struct Stage {
-    context_id: Context,
-    r#type: Signature,
-    implements: Signature,
-    in_chans: usize,
-    out_chans: usize,
-    eval: StageEvalFn,
-    dup: StageDupFn,
-    data: Box<dyn Any>,
+    pub(crate) context_id: Context,
+    pub(crate) r#type: Signature,
+    pub(crate) implements: Signature,
+    pub(crate) in_chans: usize,
+    pub(crate) out_chans: usize,
+    pub(crate) eval: StageEvalFn,
+    pub(crate) dup: StageDupFn,
+    pub(crate) data: Box<dyn Any>,
 }
 
 mod curve;
