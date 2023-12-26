@@ -155,3 +155,8 @@ pub fn quick_saturate_word(d: f64) -> u16 {
 
     quick_floor_word(d)
 }
+
+pub fn quantize_val(i: f64, max_samples: usize) -> u16 {
+    let x = (i as f64 * 65535f64) / (max_samples - 1) as f64;
+    quick_saturate_word(x)
+}
