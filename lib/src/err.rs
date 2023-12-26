@@ -13,6 +13,22 @@ macro_rules! err {
             Err($s)
         }
     };
+    ($c:expr, $l:ident, $e:ident, $s:tt) => { {
+                $c.signal_error(
+                log::Level::$l,
+                crate::state::ErrorCode::$e,
+                $s
+            );
+        }
+    };
+    ($c:expr, $l:ident, $e:ident, $s:tt, $($exprs:expr),*) => { {
+                $c.signal_error(
+                log::Level::$l,
+                crate::state::ErrorCode::$e,
+                &format!($s, $($exprs),*)
+            );
+        }
+    };
     ($c:expr, $l:ident, $e:ident, $s:tt; str => $ss:tt) => { {
                 $c.signal_error(
                 log::Level::$l,
