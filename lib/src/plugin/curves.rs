@@ -2,7 +2,7 @@ use crate::{state::ParametricCurve, MATRIX_DET_TOLERANCE, PLUS_INF};
 
 use super::Plugin;
 
-pub type ParametricCurveEvaluator = fn(r#type: i32, params: &[f64], r: f64) -> f64;
+pub type ParametricCurveEvaluator = fn(r#type: i32, params: [f64; 10], r: f64) -> f64;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct CurveDef {
@@ -21,7 +21,7 @@ pub(crate) const DEFAULT_PARAMETRIC_CURVE: ParametricCurve = ParametricCurve {
     eval: default_parametric_curve_evaluator,
 };
 
-pub(crate) fn default_parametric_curve_evaluator(r#type: i32, params: &[f64], r: f64) -> f64 {
+pub(crate) fn default_parametric_curve_evaluator(r#type: i32, params: [f64; 10], r: f64) -> f64 {
     match r#type {
         // X = Y ^ Gamma
         1 => {
