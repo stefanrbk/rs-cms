@@ -2,6 +2,8 @@ use std::any::Any;
 
 use crate::{quick_saturate_word, sig, state::Context, types::stage::curve::StageCurve, Result};
 
+use self::matrix::StageMatrix;
+
 use super::{curve::Curve, Signature};
 
 pub type StageEvalFn = fn(stage: &Stage, r#in: &[f32], out: &mut [f32]);
@@ -129,6 +131,65 @@ impl Stage {
         new_lut.implements = sig::mpe_stage::IDENTITY;
 
         Ok(new_lut)
+    }
+
+    fn eval_matrix(&self, r#in: &[f32], out: &mut [f32]) {
+        if let Some(data) = self.data.downcast_ref::<StageMatrix>() {
+            // Input is already in 0..1.0 domain
+            for i in 0..self.out_chans {
+                let mut tmp = 0f64;
+                for j in 0..self.in_chans {
+                    tmp += r#in[j] as f64 * data.double[i * self.in_chans + j] as f64;
+                }
+
+                if data.offset.len() != 0 {
+                    tmp += data.offset[i];
+                }
+
+                out[i] = tmp as f32;
+            }
+        }
+        // Output in 0..1.0 domain
+    }
+
+    fn dup_matrix(&self) -> Result<Box<dyn Any>> {
+        let data = self
+            .data
+            .downcast_ref::<StageMatrix>()
+            .ok_or("Stage is not a Matrix")?;
+
+        Ok(Box::new(StageMatrix {
+            double: data.double.clone(),
+            offset: data.offset.clone(),
+        }))
+    }
+
+    pub fn new_matrix(
+        context_id: &Context,
+        rows: usize,
+        cols: usize,
+        matrix: &[f64],
+        offset: &[f64],
+    ) -> Result<Self> {
+        // check for overflow
+        let n = rows
+            .checked_mul(cols)
+            .ok_or("new_matrix rows and cols overflowed!")?;
+
+        let new_elem = StageMatrix {
+            double: matrix[..n].into(),
+            offset: if offset.len() == 0 { Box::default() } else { offset[..rows].into() },
+        };
+
+        Ok(Self::new(
+            &context_id,
+            sig::mpe_stage::MATRIX,
+            cols,
+            rows,
+            Self::eval_matrix,
+            Self::dup_matrix,
+            Box::new(new_elem),
+        ))
     }
 }
 
