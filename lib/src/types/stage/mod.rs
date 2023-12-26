@@ -1,11 +1,11 @@
 use std::any::Any;
 
-use crate::{state::Context, types::stage::curve::StageCurve};
+use crate::{state::Context, types::stage::curve::StageCurve, Result};
 
-use super::{Signature, curve::Curve};
+use super::{curve::Curve, Signature};
 
-pub type StageEvalFn = fn(r#in: &[f32], out: &mut [f32], stage: &Stage);
-pub type StageDupFn = fn(stage: &Stage) -> Stage;
+pub type StageEvalFn = fn(stage: &Stage, r#in: &[f32], out: &mut [f32]);
+pub type StageDupFn = fn(stage: &Stage) -> Result<Box<dyn Any>>;
 
 pub struct Stage {
     context_id: Context,
