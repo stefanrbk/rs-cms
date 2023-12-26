@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{sig, state::Context, types::stage::curve::StageCurve, Result, quick_saturate_word};
+use crate::{quick_saturate_word, sig, state::Context, types::stage::curve::StageCurve, Result};
 
 use super::{curve::Curve, Signature};
 
@@ -118,16 +118,19 @@ impl Stage {
             context_id: context_id.clone(),
         };
 
-        Ok(Self {
-            context_id: context_id.clone(),
-            r#type: sig::mpe_stage::CURVE_SET,
-            implements: sig::mpe_stage::IDENTITY,
-            in_chans: num_chans,
-            out_chans: num_chans,
-            eval: Self::eval_curves,
-            dup: Self::dup_curve_set,
-            data: Box::new(new_elem),
-        })
+        let mut new_lut = Self::new(
+            &context_id,
+            sig::mpe_stage::CURVE_SET,
+            num_chans,
+            num_chans,
+            Self::eval_curves,
+            Self::dup_curve_set,
+            Box::new(new_elem),
+        );
+
+        new_lut.implements = sig::mpe_stage::IDENTITY;
+
+        Ok(new_lut)
     }
 }
 
