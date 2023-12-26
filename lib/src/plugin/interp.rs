@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use paste::paste;
 
 use crate::{
@@ -84,7 +86,7 @@ fn linear_interp_u16(a: S15Fixed16Number, l: S15Fixed16Number, h: S15Fixed16Numb
 }
 
 fn lin_lerp_1d_u16(value: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     // if last value or just one point
     if value[0] == 0xffff || p.domain[0] == 0 {
@@ -122,7 +124,7 @@ fn linear_interp_f32(a: f32, l: f32, h: f32) -> f32 {
 }
 
 fn lin_lerp_1d_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let val2 = fclamp(value[0]);
 
@@ -146,7 +148,7 @@ fn lin_lerp_1d_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
 }
 
 fn eval_1_input_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) {
-    let lut_table = &p16.table;
+    let lut_table = p16.table.lock().unwrap();
 
     // if last value...
     if input[0] == 0xffff || p16.domain[0] == 0 {
@@ -177,7 +179,7 @@ fn eval_1_input_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>) 
     }
 }
 fn eval_1_input_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let val2 = fclamp(value[0]);
 
@@ -210,7 +212,7 @@ fn eval_1_input_f32(value: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
 }
 
 fn bilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -264,7 +266,7 @@ fn bilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>)
 }
 
 fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -319,7 +321,7 @@ fn bilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>)
 }
 
 fn trilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -396,7 +398,7 @@ fn trilinear_interp_u16(input: &[u16], output: &mut [u16], p: &InterpParams<u16>
 }
 
 fn trilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -474,7 +476,7 @@ fn trilinear_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>
 }
 
 fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParams<u16>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -681,7 +683,7 @@ macro_rules! _lut {
 }
 
 fn tetrahedral_interp_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
-    let lut_table = &p.table;
+    let lut_table = p.table.lock().unwrap();
 
     let total_out = p.n_outputs;
 
@@ -844,8 +846,8 @@ fn eval_4_inputs_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>)
         } else {
             p16.opta[0] as i32
         });
-
-    let lut_table = &p16.table[(k0 as usize)..];
+    let table = p16.table.lock().unwrap();
+    let lut_table = &table[(k0 as usize)..];
 
     if rx >= ry {
         if ry >= rz
@@ -915,7 +917,7 @@ fn eval_4_inputs_u16(input: &[u16], output: &mut [u16], p16: &InterpParams<u16>)
         }
     }
 
-    let lut_table = &p16.table[(k1 as usize)..];
+    let lut_table = &table[(k1 as usize)..];
 
     if rx >= ry {
         if ry >= rz
@@ -1009,13 +1011,14 @@ fn eval_4_inputs_f32(input: &[f32], output: &mut [f32], p: &InterpParams<f32>) {
     let mut p1 = p.clone();
     p1.domain.copy_within(1..4, 0);
 
-    let t = &p.table[(k0 as usize)..];
-    p1.table = t.into();
+    let table = p.table.lock().unwrap();
+    let t = &table[(k0 as usize)..];
+    p1.table = Arc::new(Mutex::new(t.into()));
 
     tetrahedral_interp_f32(&input[1..], &mut tmp1, &p1);
 
-    let t = &p.table[(k1 as usize)..];
-    p1.table = t.into();
+    let t = &table[(k1 as usize)..];
+    p1.table = Arc::new(Mutex::new(t.into()));
 
     tetrahedral_interp_f32(&input[1..], &mut tmp2, &p1);
 
@@ -1049,13 +1052,14 @@ macro_rules! eval_fns {
                 let mut p1 = p16.clone();
                 p1.domain.copy_within(1..$n, 0);
 
-                let t = &p16.table[(k0 as usize)..];
-                p1.table = t.into();
+                let table = p16.table.lock().unwrap();
+                let t = &table[(k0 as usize)..];
+                p1.table = Arc::new(Mutex::new(t.into()));
 
                 [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp1, &p1);
 
-                let t = &p16.table[(k1 as usize)..];
-                p1.table = t.into();
+                let t = &table[(k1 as usize)..];
+                p1.table = Arc::new(Mutex::new(t.into()));
 
                 [<eval_ $nm _inputs_u16>](&input[1..], &mut tmp2, &p1);
 
@@ -1083,13 +1087,14 @@ macro_rules! eval_fns {
                 let mut p1 = p.clone();
                 p1.domain.copy_within(1..$n, 0);
 
-                let t = &p.table[(k0 as usize)..];
-                p1.table = t.into();
+                let table = p.table.lock().unwrap();
+                let t = &table[(k0 as usize)..];
+                p1.table = Arc::new(Mutex::new(t.into()));
 
                 [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp1, &p1);
 
-                let t = &p.table[(k1 as usize)..];
-                p1.table = t.into();
+                let t = &table[(k1 as usize)..];
+                p1.table = Arc::new(Mutex::new(t.into()));
 
                 [<eval_ $nm _inputs_f32>](&input[1..], &mut tmp2, &p1);
 

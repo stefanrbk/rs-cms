@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use log::Level;
 
 use crate::{
@@ -20,7 +22,7 @@ where
     pub n_samples: [usize; MAX_INPUT_DIMENSIONS],
     pub domain: [usize; MAX_INPUT_DIMENSIONS],
     pub opta: [usize; MAX_INPUT_DIMENSIONS],
-    pub table: Box<[T]>,
+    pub table: Arc<Mutex<Box<[T]>>>,
     pub interpolation: InterpFunction,
 }
 
@@ -69,7 +71,7 @@ impl<T: Copy> InterpParams<T> {
             n_samples: p_n_samples,
             domain: p_domain,
             opta: p_opta,
-            table,
+            table: Arc::new(Mutex::new(table)),
             interpolation: (context_id.get_interp_factory())(input_chan, output_chan, flags)?,
         })
     }
