@@ -19,6 +19,7 @@ pub struct Stage {
 }
 
 mod curve;
+mod matrix;
 
 impl Stage {
     fn new(
