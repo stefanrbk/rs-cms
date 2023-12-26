@@ -21,6 +21,43 @@ pub struct Stage {
 mod curve;
 
 impl Stage {
+    fn new(
+        context_id: &Context,
+        r#type: Signature,
+        in_chans: usize,
+        out_chans: usize,
+        eval: StageEvalFn,
+        dup: StageDupFn,
+        data: Box<dyn Any>,
+    ) -> Self {
+        Self {
+            context_id: context_id.clone(),
+            r#type,
+            implements: r#type,
+            in_chans,
+            out_chans,
+            eval,
+            dup,
+            data,
+        }
+    }
+
+    fn eval_identity(&self, r#in: &[f32], out: &mut [f32]) {
+        out[..self.in_chans].copy_from_slice(&r#in[..self.in_chans])
+    }
+
+    pub fn new_identity(context_id: &Context, num_chans: usize) -> Result<Self> {
+        Ok(Self::new(
+            &context_id,
+            sig::mpe_stage::IDENTITY,
+            num_chans,
+            num_chans,
+            Self::eval_curves,
+            Self::dup_curve_set,
+            Box::new(0),
+        ))
+    }
+
     pub(crate) fn get_curve_set(&self) -> Option<&[Curve]> {
         if let Some(data) = self.data.downcast_ref::<StageCurve>() {
             Some(&data.curves)
