@@ -1,10 +1,13 @@
-use std::any::Any;
+use std::any::{Any, TypeId};
 
-use crate::{quick_saturate_word, sig, state::Context, types::stage::curve::StageCurve, Result};
+use crate::{
+    plugin::lerp_flags, quick_saturate_word, sig, state::Context, types::stage::curve::StageCurve,
+    Result, MAX_INPUT_DIMENSIONS, MAX_STAGE_CHANNELS, Sampler, quantize_val, SAMPLER_INSPECT, MAX_CHANNELS,
+};
 
-use self::matrix::StageMatrix;
+use self::{clut::StageCLut, matrix::StageMatrix};
 
-use super::{curve::Curve, Signature};
+use super::{curve::Curve, InterpFunction::F32, InterpFunction::U16, InterpParams, Signature};
 
 pub type StageEvalFn = fn(stage: &Stage, r#in: &[f32], out: &mut [f32]);
 pub type StageDupFn = fn(stage: &Stage) -> Result<Box<dyn Any>>;
@@ -195,6 +198,214 @@ impl Stage {
             Box::new(new_elem),
         ))
     }
+
+    fn eval_clut_f32(&self, r#in: &[f32], out: &mut [f32]) {
+        if let Some(data) = self.data.downcast_ref::<StageCLut<f32>>() {
+            if let F32(interp) = data.params.interpolation {
+                interp(r#in, out, &data.params);
+            }
+        }
+    }
+
+    fn eval_clut_u16(&self, r#in: &[f32], out: &mut [f32]) {
+        if let Some(data) = self.data.downcast_ref::<StageCLut<u16>>() {
+            if let U16(interp) = data.params.interpolation {
+                let mut in16 = [0u16; MAX_STAGE_CHANNELS];
+                let mut out16 = [0u16; MAX_STAGE_CHANNELS];
+
+                from_f32_to_u16(&r#in[..self.in_chans], &mut in16[..self.in_chans]);
+                interp(&in16, &mut out16, &data.params);
+                from_u16_to_f32(&out16[..self.out_chans], &mut out[..self.out_chans]);
+            }
+        }
+    }
+
+    pub fn dup_clut<T>(&self) -> Result<Box<dyn Any>>
+    where
+        T: Copy + 'static,
+    {
+        let data = self
+            .data
+            .downcast_ref::<StageCLut<T>>()
+            .ok_or("Stage is not a CLut")?;
+
+        let params = InterpParams::compute_ex(
+            &self.context_id,
+            &data.params.n_samples,
+            data.params.n_inputs,
+            data.params.n_outputs,
+            data.tab.clone(),
+            data.params.flags,
+        )?;
+
+        Ok(Box::new(StageCLut {
+            tab: data.tab.clone(),
+            params,
+        }))
+    }
+
+    pub fn new_clut_granular<T: Copy + 'static>(
+        context_id: &Context,
+        clut_points: &[usize],
+        in_chan: usize,
+        out_chan: usize,
+        table: &[T],
+    ) -> Result<Self> {
+        if in_chan > MAX_INPUT_DIMENSIONS {
+            return err!(context_id, Error, Range, "Too many input channels ({} channels, max={}", in_chan, MAX_INPUT_DIMENSIONS;
+                str => "Too many input channels");
+        }
+
+        let params = InterpParams::compute_ex(
+            context_id,
+            clut_points,
+            in_chan,
+            out_chan,
+            table.into(),
+            if table.type_id() == TypeId::of::<&[u16]>() {
+                lerp_flags::BITS_16
+            } else if table.type_id() == TypeId::of::<&[f32]>() {
+                lerp_flags::FLOAT
+            } else {
+                return err!(context_id, Error, NotSuitable, "Invalid table type (expected &[f32] or &[u16], found {:?})", table.type_id();
+                    str => "Invalid table type");
+            },
+        )?;
+
+        let data = Box::new(StageCLut {
+            tab: table.into(),
+            params,
+        });
+
+        Ok(Stage::new(
+            context_id,
+            sig::mpe_stage::CLUT,
+            in_chan,
+            out_chan,
+            Self::eval_clut_u16,
+            Self::dup_clut::<T>,
+            data,
+        ))
+    }
+
+    pub fn new_clut<T: Copy + 'static>(
+        context_id: &Context,
+        grid_points: usize,
+        in_chan: usize,
+        out_chan: usize,
+        table: &[u16],
+    ) -> Result<Self> {
+        let dims = [grid_points; MAX_INPUT_DIMENSIONS];
+
+        Self::new_clut_granular(context_id, &dims, in_chan, out_chan, table)
+    }
+
+    pub(crate) fn new_identity_clut(context_id: &Context, num_chans: usize) -> Result<Self> {
+        let mut dims = [2usize; MAX_INPUT_DIMENSIONS];
+
+        let mut mpe = Self::new_clut_granular::<u16>(context_id, &dims, num_chans, num_chans, &[])?;
+
+        mpe.sample_clut_u16(identity_sampler, &num_chans, 0)?;
+        mpe.implements = sig::mpe_stage::IDENTITY;
+
+        Ok(mpe)
+    }
+
+    pub fn sample_clut_u16(&mut self, sampler: Sampler<u16>, cargo: &dyn Any, flags: u32) -> Result<()> {
+        let r#in = &mut [0u16; MAX_INPUT_DIMENSIONS + 1];
+        let out = &mut [0u16; MAX_STAGE_CHANNELS];
+
+        let clut = self.data.downcast_mut::<StageCLut<u16>>().ok_or("Stage doesn't contain StageCLut data!")?;
+
+        let n_samples = clut.params.n_samples;
+        let n_inputs = clut.params.n_inputs;
+        let n_outputs = clut.params.n_outputs;
+
+        if n_inputs > MAX_INPUT_DIMENSIONS || n_inputs <= 0 || n_outputs > MAX_STAGE_CHANNELS || n_outputs <= 0 {
+            return err!(str => "Invalid params");
+        }
+
+        let n_total_points = cube_size(&n_samples[..n_inputs]);
+        if n_total_points == 0 {
+            return err!(str => "Invalid point calculation");
+        }
+
+        let mut index = 0usize;
+        for i in 0..n_total_points {
+            let mut rest = i;
+            for t in (0..n_inputs).rev() {
+                let colorant = rest % n_samples[t];
+
+                rest /= n_samples[t];
+
+                r#in[t] = quantize_val(colorant as f64, n_samples[t]);
+            }
+
+            for t in 0..n_outputs {
+                out[t] = clut.tab[index + t];
+            }
+
+            sampler(r#in, out, cargo)?;
+
+            if flags & SAMPLER_INSPECT == 0 {
+                for t in 0..n_outputs {
+                    clut.tab[index + t] = out[t];
+                }
+            }
+
+            index += n_outputs;
+        }
+        
+        Ok(())
+    }
+
+    pub fn sample_clut_f32(&mut self, sampler: Sampler<f32>, cargo: &dyn Any, flags: u32) -> Result<()> {
+        let r#in = &mut [0f32; MAX_INPUT_DIMENSIONS + 1];
+        let out = &mut [0f32; MAX_STAGE_CHANNELS];
+
+        let clut = self.data.downcast_mut::<StageCLut<f32>>().ok_or("Stage doesn't contain StageCLut data!")?;
+
+        let n_samples = clut.params.n_samples;
+        let n_inputs = clut.params.n_inputs;
+        let n_outputs = clut.params.n_outputs;
+
+        if n_inputs > MAX_INPUT_DIMENSIONS || n_inputs <= 0 || n_outputs > MAX_STAGE_CHANNELS || n_outputs <= 0 {
+            return err!(str => "Invalid params");
+        }
+
+        let n_total_points = cube_size(&n_samples[..n_inputs]);
+        if n_total_points == 0 {
+            return err!(str => "Invalid point calculation");
+        }
+
+        let mut index = 0usize;
+        for i in 0..n_total_points {
+            let mut rest = i;
+            for t in (0..n_inputs).rev() {
+                let colorant = rest % n_samples[t];
+
+                rest /= n_samples[t];
+
+                r#in[t] = (quantize_val(colorant as f64, n_samples[t]) as f64 / 65535f64) as f32;
+            }
+
+            for t in 0..n_outputs {
+                out[t] = clut.tab[index + t];
+            }
+
+            sampler(r#in, out, cargo)?;
+
+            if flags & SAMPLER_INSPECT == 0 {
+                for t in 0..n_outputs {
+                    clut.tab[index + t] = out[t];
+                }
+            }
+
+            index += n_outputs;
+        }
+        
+        Ok(())
+    }
 }
 
 fn from_f32_to_u16(r#in: &[f32], out: &mut [u16]) {
@@ -209,6 +420,83 @@ fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
     for i in 0..len {
         out[i] = i as f32 / 65535f32;
     }
+}
+
+fn cube_size(dims: &[usize]) -> usize {
+    let mut b = dims.len();
+    let mut rv = 1usize;
+
+    loop {
+        if b <= 0 {
+            break;
+        }
+
+        let dim = dims[b - 1];
+        if dim <= 1 {
+            return 0; // Error
+        }
+
+        let rv1 = rv.checked_mul(dim);
+        if let Some(rv1) = rv1 {
+            rv = rv1;
+        } else {
+            return 0; // Error}
+        }
+
+        b -= 1;
+    }
+
+    rv
+}
+
+fn identity_sampler(r#in: &[u16], out: &mut [u16], cargo: &dyn Any) -> Result<()> {
+    let n_chan = cargo.downcast_ref::<usize>().ok_or("cargo must be a `usize`")?;
+
+    for i in 0..*n_chan {
+        out[i] = r#in[i];
+    }
+
+    Ok(())
+}
+
+pub fn slice_space_u16(n_inputs: usize, clut_points: &[usize], sampler: Sampler<u16>, cargo: &dyn Any) -> Result<()> {
+    let mut r#in = [0u16; MAX_CHANNELS];
+
+    let n_total_points = cube_size(&clut_points[..n_inputs]);
+
+    for i in 0..n_total_points {
+        let mut rest = i;
+        for t in (0..n_inputs).rev() {
+            let colorant = rest % clut_points[t];
+
+            rest /= clut_points[t];
+            r#in[t] = quantize_val(colorant as f64, clut_points[t]);
+        }
+
+        sampler(&r#in, &mut [], cargo)?;
+    }
+
+    Ok(())
+}
+
+pub fn slice_space_f32(n_inputs: usize, clut_points: &[usize], sampler: Sampler<f32>, cargo: &dyn Any) -> Result<()> {
+    let mut r#in = [0f32; MAX_CHANNELS];
+
+    let n_total_points = cube_size(&clut_points[..n_inputs]);
+
+    for i in 0..n_total_points {
+        let mut rest = i;
+        for t in (0..n_inputs).rev() {
+            let colorant = rest % clut_points[t];
+
+            rest /= clut_points[t];
+            r#in[t] = (quantize_val(colorant as f64, clut_points[t]) as f64 / 65535f64) as f32;
+        }
+
+        sampler(&r#in, &mut [], cargo)?;
+    }
+
+    Ok(())
 }
 
 mod clut;

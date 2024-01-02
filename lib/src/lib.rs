@@ -27,6 +27,8 @@ pub type U8Fixed8Number = u16;
 
 pub type Result<T> = core::result::Result<T, &'static str>;
 
+pub type Sampler<T> = fn(r#in: &[T], out: &mut [T], cargo: &dyn Any) -> Result<()>;
+
 mod consts;
 #[macro_use]
 mod err;
@@ -37,6 +39,8 @@ mod sem_ver;
 pub mod sig;
 pub mod state;
 pub mod types;
+
+use std::any::Any;
 
 pub use consts::*;
 pub(crate) use err::*;
