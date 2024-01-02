@@ -9,6 +9,7 @@ mod response;
 mod signature;
 mod stage;
 mod transform;
+mod xyy;
 mod xyz;
 
 pub use date_time::DateTimeNumber;
@@ -21,4 +22,5 @@ pub use response::ResponseNumber;
 pub use signature::Signature;
 pub use stage::{Stage, StageDupFn, StageEvalFn};
 pub use transform::*;
+pub use xyy::XYY;
 pub use xyz::{XYZNumber, XYZ};
