@@ -301,7 +301,7 @@ impl Stage {
     }
 
     pub(crate) fn new_identity_clut(context_id: &Context, num_chans: usize) -> Result<Self> {
-        let mut dims = [2usize; MAX_INPUT_DIMENSIONS];
+        let dims = [2usize; MAX_INPUT_DIMENSIONS];
 
         let mut mpe = Self::new_clut_granular::<u16>(context_id, &dims, num_chans, num_chans, &[])?;
 
