@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use crate::{quick_saturate_word, D50};
 
-use super::XYZ;
+use super::{LCh, XYZ};
 
 const MIN_ENCODABLE_AB2: f64 = -128.0;
 const MAX_ENCODABLE_AB2: f64 = (65535.0 / 256.0) - 128.0;
@@ -58,6 +58,14 @@ impl Lab {
         let b = ab_to_u16_v4(b);
 
         LabEncoded { l, a, b }
+    }
+
+    pub fn as_lch(self) -> LCh {
+        let l = self.l;
+        let c = (sqr(self.a) + sqr(self.b)).powf(0.5);
+        let h = atan_to_deg(self.b, self.a);
+
+        LCh { l, c, h }
     }
 }
 
@@ -136,4 +144,26 @@ fn l_to_u16_v4(l: f64) -> u16 {
 
 fn ab_to_u16_v4(ab: f64) -> u16 {
     quick_saturate_word((ab + 128.0) * 257.0)
+}
+
+fn sqr(v: f64) -> f64 {
+    v * v
+}
+
+fn atan_to_deg(a: f64, b: f64) -> f64 {
+    let mut h = if a == 0.0 && b == 0.0 {
+        0.0
+    } else {
+        a.atan2(b)
+    } * (180.0 * PI);
+
+    while h > 360.0 {
+        h -= 360.0;
+    }
+
+    while h < 0.0 {
+        h += 360.0;
+    }
+
+    h
 }
