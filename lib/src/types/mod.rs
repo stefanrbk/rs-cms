@@ -27,4 +27,4 @@ pub use signature::Signature;
 pub use stage::{Stage, StageDupFn, StageEvalFn};
 pub use transform::*;
 pub use xyy::XYY;
-pub use xyz::{XYZNumber, XYZ};
+pub use xyz::{XYZEncoded, XYZNumber, XYZ};
