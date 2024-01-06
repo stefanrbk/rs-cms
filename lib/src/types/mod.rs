@@ -16,7 +16,7 @@ mod xyz;
 pub use date_time::DateTimeNumber;
 pub use format::Format;
 pub use interp_params::{InterpFn, InterpFunction, InterpParams};
-pub use lab::Lab;
+pub use lab::{Lab, LabEncoded};
 pub use pipeline::Pipeline;
 pub use position::PositionNumber;
 pub use profile::Profile;
