@@ -17,7 +17,17 @@ pub struct XYZ {
 }
 
 impl XYZ {
-    pub fn into(self, whitepoint: Self) -> Lab {
+    pub fn as_xyy(self) -> XYY {
+        let i_sum = 1f64 / (self.x + self.y + self.z);
+
+        let x = self.x * i_sum;
+        let y = self.y * i_sum;
+        let y2 = self.y;
+
+        XYY { x, y, y2 }
+    }
+
+    pub fn as_lab(self, whitepoint: Self) -> Lab {
         let fx = f(self.x / whitepoint.x);
         let fy = f(self.y / whitepoint.y);
         let fz = f(self.z / whitepoint.z);
@@ -27,22 +37,6 @@ impl XYZ {
         let b = 200.0 * (fy - fz);
 
         Lab { l, a, b }
-    }
-}
-
-impl From<Lab> for XYZ {
-    fn from(value: Lab) -> Self {
-        value.into(D50)
-    }
-}
-
-impl From<XYY> for XYZ {
-    fn from(value: XYY) -> Self {
-        let x = (value.x / value.y) * value.y2;
-        let y = value.y2;
-        let z = ((1f64 - value.x - value.y) / value.y) * value.y2;
-
-        Self { x, y, z }
     }
 }
 

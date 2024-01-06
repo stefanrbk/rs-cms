@@ -7,14 +7,12 @@ pub struct XYY {
     pub y2: f64,
 }
 
-impl From<XYZ> for XYY {
-    fn from(value: XYZ) -> Self {
-        let i_sum = 1f64 / (value.x + value.y + value.z);
+impl XYY {
+    pub fn as_xyz(self) -> XYZ {
+        let x = (self.x / self.y) * self.y2;
+        let y = self.y2;
+        let z = ((1f64 - self.x - self.y) / self.y) * self.y2;
 
-        let x = value.x * i_sum;
-        let y = value.y * i_sum;
-        let y2 = value.y;
-
-        XYY { x, y, y2 }
+        XYZ { x, y, z }
     }
 }
