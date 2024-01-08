@@ -29,9 +29,11 @@ pub type Result<T> = core::result::Result<T, &'static str>;
 
 pub type Sampler<T> = fn(r#in: &[T], out: &mut [T], cargo: &dyn Any) -> Result<()>;
 
-mod consts;
 #[macro_use]
 mod err;
+
+mod colorspace;
+mod consts;
 mod functions;
 pub mod io;
 pub mod plugin;
