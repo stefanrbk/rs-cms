@@ -36,6 +36,10 @@ impl Lab {
         XYZ { x, y, z }
     }
 
+    pub fn as_xyz_d50(self) -> XYZ {
+        self.as_xyz(D50)
+    }
+
     pub fn as_lab_encoded_v2(self) -> LabEncoded {
         let l = clamp_l_f64_v2(self.l);
         let a = clamp_ab_f64_v2(self.a);
