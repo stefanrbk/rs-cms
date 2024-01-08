@@ -15,7 +15,7 @@ mod xyy;
 mod xyz;
 
 pub use date_time::DateTimeNumber;
-pub use format::Format;
+pub use format::{pixel_type, Format};
 pub use interp_params::{InterpFn, InterpFunction, InterpParams};
 pub use lab::{Lab, LabEncoded};
 pub use lch::LCh;
