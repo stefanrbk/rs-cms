@@ -51,6 +51,10 @@ impl XYZ {
         Lab { l, a, b }
     }
 
+    pub fn as_lab_d50(self) -> Lab {
+        self.as_lab(D50)
+    }
+
     pub fn as_xyz_encoded(mut self) -> XYZEncoded {
         if self.y <= 0.0 {
             self.x = 0.0;

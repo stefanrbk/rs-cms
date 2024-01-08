@@ -465,7 +465,7 @@ impl Stage {
             3,
             3,
             Self::eval_lab_to_xyz,
-            |_| err!(str => ""),
+            Self::dup_null,
             Box::new(0u8),
         ))
     }
@@ -574,6 +574,80 @@ impl Stage {
             Self::clipper,
             Self::dup_null,
             Box::new(0u8),
+        ))
+    }
+
+    fn eval_xyz_to_lab(&self, r#in: &[f32], out: &mut [f32]) {
+        const XYZ_ADJ: f64 = XYZ::MAX;
+
+        // From 0..1.0 to XYZ
+        let x = r#in[0] as f64 * XYZ_ADJ;
+        let y = r#in[1] as f64 * XYZ_ADJ;
+        let z = r#in[2] as f64 * XYZ_ADJ;
+
+        let xyz = XYZ { x, y, z };
+
+        let lab = xyz.as_lab_d50();
+
+        // From V4 Lab to 0..1.0
+
+        out[0] = (lab.l / 100.0) as f32;
+        out[1] = ((lab.a + 128.0) / 255.0) as f32;
+        out[2] = ((lab.b + 128.0) / 255.0) as f32;
+    }
+
+    pub(crate) fn new_xyz_to_lab(context_id: &Context) -> Result<Self> {
+        Ok(Self::new(
+            context_id,
+            sig::mpe_stage::XYZ_2_LAB,
+            3,
+            3,
+            Self::eval_xyz_to_lab,
+            Self::dup_null,
+            Box::new(0u8),
+        ))
+    }
+
+    pub(crate) fn new_lab_prelin(context_id: &Context) -> Result<Self> {
+        let params = [2.4];
+        let lab_table = [
+            Curve::build_gamma(context_id, 1.0)?,
+            Curve::build_parametric(context_id, 108, &params)?,
+            Curve::build_parametric(context_id, 108, &params)?,
+        ];
+
+        Stage::new_curves(context_id, &lab_table)
+    }
+
+    pub fn input_channels(&self) -> usize {
+        self.in_chans
+    }
+
+    pub fn output_channels(&self) -> usize {
+        self.out_chans
+    }
+
+    pub fn r#type(&self) -> Signature {
+        self.r#type
+    }
+
+    pub fn data(&self) -> &dyn Any {
+        &self.data
+    }
+
+    pub fn context_id(&self) -> &Context {
+        &self.context_id
+    }
+    
+    pub fn dup(&self) -> Result<Self> {
+        Ok(Self::new(
+            &self.context_id,
+            self.r#type,
+            self.in_chans,
+            self.out_chans,
+            self.eval,
+            self.dup,
+            (self.dup)(self)?,
         ))
     }
 }
