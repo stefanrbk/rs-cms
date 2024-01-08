@@ -469,6 +469,67 @@ impl Stage {
             Box::new(0u8),
         ))
     }
+
+    pub(crate) fn new_lab_v2_to_v4_curves(context_id: &Context) -> Result<Self> {
+        let mut lab_table = [
+            Curve::build_tabulated_u16(context_id, 258, &[])?,
+            Curve::build_tabulated_u16(context_id, 258, &[])?,
+            Curve::build_tabulated_u16(context_id, 258, &[])?,
+        ];
+
+        for j in 0..3 {
+            // We need to map * (0xffff / 0xff00), that's same as (257 / 256)
+            // So we can use 258-entry tables to do the trick (i / 257) * (255 * 257) * (257 / 256)
+            for i in 0..257 {
+                lab_table[j].table[i] = ((i as u32 * 0xffff + 0x80) >> 8) as u16;
+            }
+
+            lab_table[j].table[257] = 0xffff;
+        }
+
+        let mut mpe = Stage::new_curves(context_id, &lab_table)?;
+        mpe.implements = sig::mpe_stage::LAB_V2_TO_V4;
+
+        Ok(mpe)
+    }
+
+    pub(crate) fn new_lab_v2_to_v4(context_id: &Context) -> Result<Self> {
+        const V2_TO_V4: [f64; 9] = [
+            65535.0 / 65280.0,
+            0.0,
+            0.0,
+            0.0,
+            65535.0 / 65280.0,
+            0.0,
+            0.0,
+            0.0,
+            65535.0 / 65280.0,
+        ];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &V2_TO_V4, &[])?;
+        mpe.implements = sig::mpe_stage::LAB_V2_TO_V4;
+
+        Ok(mpe)
+    }
+
+    pub(crate) fn new_lab_v4_to_v2(context_id: &Context) -> Result<Self> {
+        const V4_TO_V2: [f64; 9] = [
+            65280.0 / 65535.0,
+            0.0,
+            0.0,
+            0.0,
+            65280.0 / 65535.0,
+            0.0,
+            0.0,
+            0.0,
+            65280.0 / 65535.0,
+        ];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &V4_TO_V2, &[])?;
+        mpe.implements = sig::mpe_stage::LAB_V4_TO_V2;
+
+        Ok(mpe)
+    }
 }
 
 fn from_f32_to_u16(r#in: &[f32], out: &mut [u16]) {

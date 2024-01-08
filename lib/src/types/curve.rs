@@ -24,10 +24,10 @@ impl Curve {
     pub(crate) fn new(
         context_id: &Context,
         segments: &[CurveSegment],
+        n_entries: usize,
         values: &[u16],
     ) -> Result<Self> {
         let n_segments = segments.len();
-        let n_entries = values.len();
 
         // We allow huge tables, which are then restricted for smoothing operations
         if n_entries > 65530 {
@@ -48,8 +48,11 @@ impl Curve {
 
         let mut t: Vec<u16> = Vec::with_capacity(n_entries);
 
-        for i in 0..n_entries {
-            t.push(values[i]);
+        // Initialize members if requested
+        if values.len() == n_entries {
+            for i in 0..n_entries {
+                t.push(values[i]);
+            }
         }
 
         for i in 0..n_segments {
@@ -132,8 +135,12 @@ impl Curve {
         &self.table
     }
 
-    pub fn build_tabulated_u16(context_id: &Context, values: &[u16]) -> Result<Self> {
-        Self::new(context_id, &[], values)
+    pub fn build_tabulated_u16(
+        context_id: &Context,
+        n_entries: usize,
+        values: &[u16],
+    ) -> Result<Self> {
+        Self::new(context_id, &[], n_entries, values)
     }
 
     pub fn build_segmented(context_id: &Context, segments: &[CurveSegment]) -> Result<Self> {
@@ -146,7 +153,7 @@ impl Curve {
             4096
         };
 
-        let mut g = Self::new(context_id, segments, &[])?;
+        let mut g = Self::new(context_id, segments, num_points, &[])?;
 
         // Once we have the floating point version, we can approximate a 16 bit table of 4096 entires
         // for performance reasons. This table would normally not be used except on 8/16 bit transforms.
@@ -239,7 +246,12 @@ impl Curve {
     }
 
     pub fn dup(&self) -> Result<Self> {
-        Self::new(&self.interp_params.context_id, &self.segments, &self.table)
+        Self::new(
+            &self.interp_params.context_id,
+            &self.segments,
+            self.table.len(),
+            &self.table,
+        )
     }
 
     pub fn join(
@@ -284,6 +296,7 @@ impl Curve {
         // Nope, reverse the table
         let mut out = Self::build_tabulated_u16(
             &self.interp_params.context_id,
+            num_resulting_points,
             &vec![0u16; num_resulting_points],
         )?;
 
