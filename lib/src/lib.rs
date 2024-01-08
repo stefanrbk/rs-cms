@@ -29,6 +29,8 @@ pub type Result<T> = core::result::Result<T, &'static str>;
 
 pub type Sampler<T> = fn(r#in: &[T], out: &mut [T], cargo: &dyn Any) -> Result<()>;
 
+pub(crate) type DupFn = fn(context: &Context, data: &dyn Any) -> Result<Box<dyn Any>>;
+
 #[macro_use]
 mod err;
 
@@ -48,3 +50,4 @@ pub use consts::*;
 pub(crate) use err::*;
 pub use functions::*;
 pub use sem_ver::SemVer;
+use state::Context;
