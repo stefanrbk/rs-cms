@@ -1,8 +1,9 @@
-use std::f64::consts::PI;
+use crate::PI;
 
 use super::Lab;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct LCh {
     pub l: f64,
     pub c: f64,
@@ -20,8 +21,4 @@ impl LCh {
 
         Lab { l, a, b }
     }
-}
-
-fn radians(deg: f64) -> f64 {
-    (deg * PI) / 180.0
 }

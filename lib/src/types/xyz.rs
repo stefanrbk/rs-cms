@@ -5,6 +5,7 @@ use super::{Lab, XYY};
 const MAX_ENCODABLE_XYZ: f64 = 1.0 + 32767.0 / 32768.0;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct XYZNumber {
     pub x: S15Fixed16Number,
     pub y: S15Fixed16Number,
@@ -12,6 +13,7 @@ pub struct XYZNumber {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct XYZ {
     pub x: f64,
     pub y: f64,
@@ -19,6 +21,7 @@ pub struct XYZ {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct XYZEncoded {
     pub x: u16,
     pub y: u16,

@@ -1,6 +1,7 @@
 use super::XYZ;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct XYY {
     pub x: f64,
     pub y: f64,

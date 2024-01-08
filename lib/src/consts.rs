@@ -26,6 +26,10 @@ pub(crate) const MINUS_INF: f64 = -1e22f64;
 pub(crate) const PLUS_INF: f64 = 1e22f64;
 
 pub const SAMPLER_INSPECT: u32 = 0x01000000;
+
+pub(crate) const PI: f64 = 3.14159265358979323846;
+pub(crate) const LOG10E: f64 = 0.434294481903251827651;
+
 pub mod flags {
     pub const NO_CACHE: u32 = 0x0040;
     pub const NO_OPTIMIZE: u32 = 0x0100;
