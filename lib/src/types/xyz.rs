@@ -2,8 +2,6 @@ use crate::{quick_saturate_word, s15_fixed16_number_to_f64, S15Fixed16Number, D5
 
 use super::{Lab, XYY};
 
-const MAX_ENCODABLE_XYZ: f64 = 1.0 + 32767.0 / 32768.0;
-
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct XYZNumber {
@@ -29,6 +27,8 @@ pub struct XYZEncoded {
 }
 
 impl XYZ {
+    pub const MAX: f64 = 1.0 + 32767.0 / 32768.0;
+
     pub fn as_xyy(self) -> XYY {
         let i_sum = 1f64 / (self.x + self.y + self.z);
 
@@ -58,9 +58,9 @@ impl XYZ {
             self.z = 0.0;
         }
 
-        let x = xyz_to_u16(self.x.clamp(0.0, MAX_ENCODABLE_XYZ));
-        let y = xyz_to_u16(self.y.clamp(0.0, MAX_ENCODABLE_XYZ));
-        let z = xyz_to_u16(self.z.clamp(0.0, MAX_ENCODABLE_XYZ));
+        let x = xyz_to_u16(self.x.clamp(0.0, XYZ::MAX));
+        let y = xyz_to_u16(self.y.clamp(0.0, XYZ::MAX));
+        let z = xyz_to_u16(self.z.clamp(0.0, XYZ::MAX));
 
         XYZEncoded { x, y, z }
     }
