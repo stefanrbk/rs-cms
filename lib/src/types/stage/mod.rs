@@ -494,17 +494,8 @@ impl Stage {
     }
 
     pub(crate) fn new_lab_v2_to_v4(context_id: &Context) -> Result<Self> {
-        const V2_TO_V4: [f64; 9] = [
-            65535.0 / 65280.0,
-            0.0,
-            0.0,
-            0.0,
-            65535.0 / 65280.0,
-            0.0,
-            0.0,
-            0.0,
-            65535.0 / 65280.0,
-        ];
+        const N: f64 = 65535.0 / 65280.0;
+        const V2_TO_V4: [f64; 9] = [N, 0.0, 0.0, 0.0, N, 0.0, 0.0, 0.0, N];
 
         let mut mpe = Stage::new_matrix(context_id, 3, 3, &V2_TO_V4, &[])?;
         mpe.implements = sig::mpe_stage::LAB_V2_TO_V4;
@@ -513,22 +504,77 @@ impl Stage {
     }
 
     pub(crate) fn new_lab_v4_to_v2(context_id: &Context) -> Result<Self> {
-        const V4_TO_V2: [f64; 9] = [
-            65280.0 / 65535.0,
-            0.0,
-            0.0,
-            0.0,
-            65280.0 / 65535.0,
-            0.0,
-            0.0,
-            0.0,
-            65280.0 / 65535.0,
-        ];
+        const N: f64 = 65280.0 / 65535.0;
+        const V4_TO_V2: [f64; 9] = [N, 0.0, 0.0, 0.0, N, 0.0, 0.0, 0.0, N];
 
         let mut mpe = Stage::new_matrix(context_id, 3, 3, &V4_TO_V2, &[])?;
         mpe.implements = sig::mpe_stage::LAB_V4_TO_V2;
 
         Ok(mpe)
+    }
+
+    pub(crate) fn normalize_from_lab_f64(context_id: &Context) -> Result<Self> {
+        const N: f64 = 1.0 / 100.0;
+        const NN: f64 = 1.0 / 255.0;
+        const A1: [f64; 9] = [N, 0.0, 0.0, 0.0, NN, 0.0, 0.0, 0.0, NN];
+
+        const O1: [f64; 3] = [0.0, 128.0 / 255.0, 128.0 / 255.0];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &A1, &O1)?;
+        mpe.implements = sig::mpe_stage::LAB_2_FLOAT_PCS;
+
+        Ok(mpe)
+    }
+
+    pub(crate) fn normalize_from_xyz_f64(context_id: &Context) -> Result<Self> {
+        const N: f64 = 32768.0 / 65535.0;
+        const A1: [f64; 9] = [N, 0.0, 0.0, 0.0, N, 0.0, 0.0, 0.0, N];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &A1, &[])?;
+        mpe.implements = sig::mpe_stage::XYZ_2_FLOAT_PCS;
+
+        Ok(mpe)
+    }
+
+    pub(crate) fn normalize_to_lab_f64(context_id: &Context) -> Result<Self> {
+        const N: f64 = 100.0;
+        const NN: f64 = 255.0;
+        const A1: [f64; 9] = [N, 0.0, 0.0, 0.0, NN, 0.0, 0.0, 0.0, NN];
+
+        const O1: [f64; 3] = [0.0, -128.0, -128.0];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &A1, &O1)?;
+        mpe.implements = sig::mpe_stage::FLOAT_PCS_2_LAB;
+
+        Ok(mpe)
+    }
+
+    pub(crate) fn normalize_to_xyz_f64(context_id: &Context) -> Result<Self> {
+        const N: f64 = 65535.0 / 32768.0;
+        const A1: [f64; 9] = [N, 0.0, 0.0, 0.0, N, 0.0, 0.0, 0.0, N];
+
+        let mut mpe = Stage::new_matrix(context_id, 3, 3, &A1, &[])?;
+        mpe.implements = sig::mpe_stage::FLOAT_PCS_2_XYZ;
+
+        Ok(mpe)
+    }
+
+    fn clipper(&self, r#in: &[f32], out: &mut [f32]) {
+        for i in 0..self.in_chans {
+            out[i] = r#in[i].max(0.0);
+        }
+    }
+
+    pub(crate) fn new_clip_negatives(context_id: &Context, num_chans: usize) -> Result<Self> {
+        Ok(Self::new(
+            context_id,
+            sig::mpe_stage::CLIP_NEGATIVES,
+            num_chans,
+            num_chans,
+            Self::clipper,
+            Self::dup_null,
+            Box::new(0u8),
+        ))
     }
 }
 
