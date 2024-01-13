@@ -1,6 +1,7 @@
 use std::any::{Any, TypeId};
 
 use crate::{
+    from_f32_to_u16, from_u16_to_f32,
     plugin::lerp_flags,
     quantize_val, quick_saturate_word, sig,
     state::Context,
@@ -638,7 +639,7 @@ impl Stage {
     pub fn context_id(&self) -> &Context {
         &self.context_id
     }
-    
+
     pub fn dup(&self) -> Result<Self> {
         Ok(Self::new(
             &self.context_id,
@@ -649,20 +650,6 @@ impl Stage {
             self.dup,
             (self.dup)(self)?,
         ))
-    }
-}
-
-fn from_f32_to_u16(r#in: &[f32], out: &mut [u16]) {
-    let len = r#in.len();
-    for i in 0..len {
-        out[i] = quick_saturate_word(i as f64 * 65535f64);
-    }
-}
-
-fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
-    let len = r#in.len();
-    for i in 0..len {
-        out[i] = i as f32 / 65535f32;
     }
 }
 
