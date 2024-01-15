@@ -16,7 +16,7 @@ use crate::{
         DEFAULT_PARAMETRIC_CURVE, DEFAULT_TAGS, DEFAULT_TAG_TYPE_HANDLERS,
         DEFAULT_TRANSFORM_FACTORIES,
     },
-    sig, Result, MAX_CHANNELS, VERSION,
+    sig, DupFn, Result, MAX_CHANNELS, VERSION,
 };
 
 use super::{ErrorCode, ErrorHandlerLogFunction, Intent, Parallelization, ParametricCurve, Tag};
@@ -27,7 +27,7 @@ pub const DEFAULT_CONTEXT: Lazy<Context> = Lazy::new(|| {
             0x7F00, 0x7F00, 0x7F00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ],
         adaptation_state: 1.0,
-        user_data: None,
+        user_data: UnsafeCell::new(None),
         error_logger: UnsafeCell::new(None),
         interp_factory: default_interpolators_factory,
         curves: vec![DEFAULT_PARAMETRIC_CURVE.clone()],
@@ -49,7 +49,7 @@ pub struct Context(Arc<ContextInner>);
 struct ContextInner {
     alarm_codes: [u16; MAX_CHANNELS],
     adaptation_state: f64,
-    user_data: Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>>,
+    user_data: UnsafeCell<Option<(Box<dyn Any>, DupFn)>>,
     error_logger: UnsafeCell<Option<ErrorHandlerLogFunction>>,
     interp_factory: InterpFnFactory,
     curves: Vec<ParametricCurve>,
@@ -69,7 +69,7 @@ impl Clone for ContextInner {
         Self {
             alarm_codes: self.alarm_codes.clone(),
             adaptation_state: self.adaptation_state.clone(),
-            user_data: self.user_data.clone(),
+            user_data: UnsafeCell::new(None),
             error_logger: UnsafeCell::new(
                 unsafe_block!("Access error_logger for cloning" => (&*self.error_logger.get()).clone()),
             ),
@@ -89,6 +89,33 @@ impl Clone for ContextInner {
 }
 
 impl Context {
+    pub fn new(
+        plugins: &[&'static Plugin],
+        user_data: Option<(Box<dyn Any>, DupFn)>,
+    ) -> Result<Self> {
+        let mut inner = DEFAULT_CONTEXT.0.as_ref().clone();
+        if let Some((data, r#fn)) = user_data {
+            inner.user_data = UnsafeCell::new(Some((r#fn(&DEFAULT_CONTEXT, &data)?, r#fn)))
+        }
+        inner.register_plugins(plugins)?;
+
+        Ok(Self(Arc::new(inner)))
+    }
+
+    pub fn dup(&self, mut user_data: Option<(Box<dyn Any>, DupFn)>) -> Result<Self> {
+        if user_data.is_none() {
+            user_data = if let Some((data, r#fn)) =
+                unsafe_block!("Getting user_data from a Context" => &mut *self.0.user_data.get())
+            {
+                Some((r#fn(&self, data)?, *r#fn))
+            } else {
+                None
+            }
+        }
+
+        Ok(Self::new(&[], user_data)?)
+    }
+
     pub fn signal_error(&self, level: Level, error_code: ErrorCode, text: &str) {
         if let Some(logger) = unsafe_block!("Get the error_logger within the UnsafeCell" => &*self.0.error_logger.get())
         {
@@ -96,8 +123,15 @@ impl Context {
         }
     }
 
-    pub fn get_user_data(&self) -> Option<Arc<Mutex<Box<dyn Any + Sync + Send>>>> {
-        Some(self.0.user_data.clone()?)
+    pub fn get_user_data(&self) -> Option<&mut dyn Any> {
+        match unsafe_block!("Getting user_data from a Context" => &mut *self.0.user_data.get()) {
+            Some((ref mut data, _)) => Some(data),
+            None => None,
+        }
+    }
+
+    pub fn set_user_data(&self, user_data: Option<(Box<dyn Any>, DupFn)>) {
+        unsafe_block!("Setting user_data for a Context" => *(&mut *self.0.user_data.get()) = user_data)
     }
 
     pub fn register_plugins(&self, plugins: &[&'static Plugin]) -> Result<Self> {
@@ -130,7 +164,10 @@ impl Context {
         self.0.interp_factory
     }
 
-    pub(crate) fn get_parametric_curve_by_type(&self, r#type: i32) -> Option<(&ParametricCurve, usize)> {
+    pub(crate) fn get_parametric_curve_by_type(
+        &self,
+        r#type: i32,
+    ) -> Option<(&ParametricCurve, usize)> {
         let ctx = &self.0.curves;
 
         for curve in ctx {
@@ -140,7 +177,7 @@ impl Context {
                 return Some((curve, pos as usize));
             }
         }
-        
+
         None
     }
 }
