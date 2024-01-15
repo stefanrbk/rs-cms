@@ -1,3 +1,11 @@
+#[inline(always)]
+fn dswap<T>(x: &mut T, y: &mut T)
+where
+    T: Copy,
+{
+    (*x, *y) = (*y, *x)
+}
+
 mod curve;
 mod date_time;
 mod format;
