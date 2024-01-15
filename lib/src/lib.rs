@@ -10,7 +10,7 @@
 /// # Example
 /// ```rust
 /// let zero: Option<i32> = Some(0);
-/// return unsafe_block!("zero can only be `Some`", zero.unwrap_unchecked());
+/// return unsafe_block!("zero can only be `Some`" => zero.unwrap_unchecked());
 /// ```
 macro_rules! unsafe_block {
     ($reason:tt => $body:expr) => {{
