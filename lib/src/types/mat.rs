@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 use super::VEC3;
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct MAT3 {
     pub x: VEC3,
     pub y: VEC3,

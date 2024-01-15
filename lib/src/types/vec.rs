@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct VEC3 {
     pub x: f64,
     pub y: f64,
