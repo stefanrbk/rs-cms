@@ -72,10 +72,10 @@ impl MAT3 {
         })
     }
 
-    pub fn solve(self, x: VEC3) -> Result<VEC3> {
+    pub fn solve(self, b: VEC3) -> Result<VEC3> {
         let a = self.inverse()?;
 
-        Ok(a * x)
+        Ok(a * b)
     }
 }
 
