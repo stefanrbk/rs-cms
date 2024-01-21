@@ -149,7 +149,10 @@ pub fn main() {
         }
     }
 
-    exit(TOTALFAIL.load(Ordering::SeqCst) as i32)
+    let total_failed = TOTALFAIL.load(Ordering::SeqCst) as i32;
+    info!("Total failed tests: {}", total_failed);
+
+    exit(total_failed)
 }
 
 pub fn check(title: &str, test: TestFn) {
