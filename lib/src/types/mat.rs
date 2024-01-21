@@ -44,7 +44,7 @@ impl MAT3 {
 
     pub fn inverse(self) -> Result<Self> {
         let c0 = self[1][1] * self[2][2] - self[1][2] * self[2][1];
-        let c1 = -self[1][0] * self[2][2] + self[1][3] * self[2][0];
+        let c1 = -self[1][0] * self[2][2] + self[1][2] * self[2][0];
         let c2 = self[1][0] * self[2][1] - self[1][1] * self[2][0];
 
         let det = self[0][0] * c0 + self[0][1] * c1 + self[0][2] * c2;
@@ -127,7 +127,7 @@ impl Mul<VEC3> for MAT3 {
     type Output = VEC3;
 
     fn mul(self, rhs: VEC3) -> Self::Output {
-        VEC3 { 
+        VEC3 {
             x: self[0].x * rhs.x + self[0].y * rhs.y + self[0].z * rhs.z,
             y: self[1].x * rhs.x + self[1].y * rhs.y + self[1].z * rhs.z,
             z: self[2].x * rhs.x + self[2].y * rhs.y + self[2].z * rhs.z,
