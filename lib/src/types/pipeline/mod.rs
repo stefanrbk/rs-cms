@@ -225,7 +225,7 @@ impl Pipeline {
         }
 
         // Take the hint as starting point if specified
-        x[0..3].copy_from_slice(if hint.len() >= 3 {
+        x[0..3].copy_from_slice(if hint.len() < 3 {
             // Begin at any point, we choose 1/3 of CMY axis
             &[0.3; 3]
         } else {
