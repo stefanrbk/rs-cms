@@ -4,11 +4,11 @@ use log::info;
 use rs_cms::{
     plugin::lerp_flags,
     state::{Context, DEFAULT_CONTEXT},
-    types::{InterpFunction, InterpParams},
+    types::{InterpFunction, InterpParams, Pipeline, Stage},
     Result,
 };
 
-use crate::helpers::{fail, is_good_fixed_15_16, is_good_word, MAX_ERR};
+use crate::helpers::{dbg_thread, fail, is_good_fixed_15_16, is_good_word, MAX_ERR, FLOAT_PRECISION};
 
 fn build_table(n: usize, tab: &mut [u16], descending: bool) {
     for i in 0..n {
@@ -472,5 +472,50 @@ pub fn exhaustive_check_3d_interpolation_u16_trilinear() -> Result<()> {
         return Ok(());
     } else {
         return Err("Invalid interpolation function");
+    }
+}
+
+pub fn check_reverse_interpolation_3x3() -> Result<()> {
+    let u16_table = [
+        0u16, 0u16, 0u16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0u16, 0u16, 0xffffu16, 0xffffu16,
+        0xffffu16, 0u16, 0u16, 0xffffu16, 0u16, 0xffffu16, 0xffffu16, 0xffffu16, 0u16, 0xffffu16,
+        0xffffu16, 0xffffu16,
+    ];
+
+    let mut lut = Pipeline::new(&dbg_thread(), 3, 3)?;
+
+    let clut = Stage::new_clut::<u16>(&dbg_thread(), 2, 3, 3, &u16_table)?;
+    lut.push(clut)?;
+
+    let mut target = [0f32; 4];
+    let mut hint = [0f32; 4];
+    let mut result = [0f32;4];
+    lut.eval_reverse_f32(&target, &mut result, &[])?;
+
+    if result[0] != 0.0 || result[1] != 0.0 || result[2] != 0.0 {
+        let msg = "Reverse interpolation didn't find zero";
+        fail(msg);
+        return Err(msg);
+    }
+
+    // Transverse identity
+    let mut max = 0f32;
+    for i in 0..=100 {
+        let r#in = i as f32 / 100.0;
+
+        target[0] = r#in;
+        target[1] = 0.0;
+        target[2] = 0.0;
+        lut.eval_reverse_f32(&target, &mut result, &hint)?;
+
+        let err = (r#in - result[0]).abs();
+        if err > max { max = err;}
+
+        hint.copy_from_slice(&result);
+    }
+
+    if max <= FLOAT_PRECISION {
+    Ok(())} else {
+        Err("err too high")
     }
 }

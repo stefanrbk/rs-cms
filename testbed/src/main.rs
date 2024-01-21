@@ -144,6 +144,11 @@ pub fn main() {
                 exhaustive_check_3d_interpolation_u16_trilinear,
             );
         }
+
+        check(
+            "Reverse interpolation 3 -> 3",
+            check_reverse_interpolation_3x3,
+        );
     }
 
     let total_failed = TOTALFAIL.load(Ordering::SeqCst) as i32;
