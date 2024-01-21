@@ -1,5 +1,7 @@
 use std::any::{Any, TypeId};
 
+use log::info;
+
 use crate::{
     from_f32_to_u16, from_u16_to_f32,
     plugin::lerp_flags,
@@ -266,9 +268,9 @@ impl Stage {
             in_chan,
             out_chan,
             table.into(),
-            if table.type_id() == TypeId::of::<&[u16]>() {
+            if table.type_id() == TypeId::of::<[u16]>() {
                 lerp_flags::BITS_16
-            } else if table.type_id() == TypeId::of::<&[f32]>() {
+            } else if table.type_id() == TypeId::of::<[f32]>() {
                 lerp_flags::FLOAT
             } else {
                 return err!(context_id, Error, NotSuitable, "Invalid table type (expected &[f32] or &[u16], found {:?})", table.type_id();
