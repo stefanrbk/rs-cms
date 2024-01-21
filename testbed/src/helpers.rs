@@ -2,12 +2,12 @@ use std::{
     mem::size_of,
     process::exit,
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicUsize},
         Mutex,
     },
 };
 
-use log::{error, info, Level};
+use log::{error, Level};
 use rs_cms::{
     f64_to_s15_fixed16_number, f64_to_u8_fixed8_number, s15_fixed16_number_to_f64,
     state::{Context, ErrorCode, DEFAULT_CONTEXT},
