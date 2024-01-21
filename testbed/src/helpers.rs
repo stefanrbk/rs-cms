@@ -129,7 +129,7 @@ pub fn check_quick_floor_word() -> Result<()> {
 
 pub const FIXED_PRECISION_15_16: f64 = 1.0 / 65535.0;
 pub const FIXED_PRECISION_8_8: f64 = 1.0 / 255.0;
-pub const FLOAT_PRECISION: f64 = 1.0e-5;
+pub const FLOAT_PRECISION: f32 = 1.0e-5;
 
 pub static MAX_ERR: Mutex<f64> = Mutex::new(0.0);
 
