@@ -188,6 +188,12 @@ impl Default for Context {
     }
 }
 
+impl PartialEq for Context {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+
 impl ContextInner {
     pub fn register_plugins(&mut self, plugins: &[&'static Plugin]) -> Result<()> {
         for plugin in plugins {
