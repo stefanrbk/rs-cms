@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::{process::exit, sync::atomic::Ordering};
 
 use clap::{
