@@ -162,10 +162,15 @@ pub fn check(title: &str, test: TestFn) {
     TRAPPED_ERROR.store(false, Ordering::SeqCst);
     SIMULTANEOUS_ERRORS.store(0usize, Ordering::SeqCst);
     TOTALTESTS.fetch_add(1usize, Ordering::SeqCst);
-    if test().is_ok() && !TRAPPED_ERROR.load(Ordering::SeqCst) {
+    let val = test();
+    if val.is_ok() && !TRAPPED_ERROR.load(Ordering::SeqCst) {
         info!("OK");
     } else {
-        error!("FAILED");
+        if let Err(msg) = val {
+            error!("FAILED {}", msg);
+        } else {
+            error!("FAILED");
+        }
         let subtest = SUBTEST.lock().unwrap();
         let reason_to_fail = REASON_TO_FAIL.lock().unwrap();
         if subtest.len() == 0 {
