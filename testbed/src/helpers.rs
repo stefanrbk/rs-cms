@@ -32,7 +32,7 @@ pub fn die(text: &str) -> ! {
     exit(1)
 }
 
-pub fn fatal_error_quit(ctx: &Context, level: Level, ec: ErrorCode, text: &str) {
+pub fn fatal_error_quit(_ctx: &Context, _level: Level, _ec: ErrorCode, text: &str) {
     die(text)
 }
 
@@ -282,7 +282,7 @@ pub fn check_d50_roundtrip() -> Result<()> {
     if euc > 1e-5 {
         fail(&format!("D50 roundtrip |{}|", euc));
         return Err("D50 roundtrip error outside allowed range");
-    } 
+    }
 
     Ok(())
 }
