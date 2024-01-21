@@ -1,10 +1,7 @@
 #![allow(dead_code)]
 use std::{process::exit, sync::atomic::Ordering};
 
-use clap::{
-    crate_authors, crate_version, value_parser, Arg, ArgAction,
-    Command,
-};
+use clap::{crate_authors, crate_version, value_parser, Arg, ArgAction, Command};
 use log::{error, info, Level};
 use rs_cms::state::DEFAULT_CONTEXT;
 
