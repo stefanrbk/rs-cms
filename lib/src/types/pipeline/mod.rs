@@ -284,16 +284,16 @@ impl Pipeline {
 
                 self.eval_f32(&xd, &mut fxd)?;
 
-                jacobian[0][j] = (fxd[0] as f64 - fx[0] as f64) / JACOBIAN_EPSILON as f64;
-                jacobian[1][j] = (fxd[1] as f64 - fx[1] as f64) / JACOBIAN_EPSILON as f64;
-                jacobian[2][j] = (fxd[2] as f64 - fx[2] as f64) / JACOBIAN_EPSILON as f64;
+                jacobian[0][j] = ((fxd[0] - fx[0]) / JACOBIAN_EPSILON) as f64;
+                jacobian[1][j] = ((fxd[1] - fx[1]) / JACOBIAN_EPSILON) as f64;
+                jacobian[2][j] = ((fxd[2] - fx[2]) / JACOBIAN_EPSILON) as f64;
             }
 
             // Solve system
             let tmp2 = VEC3 {
-                x: fx[0] as f64 - target[0] as f64,
-                y: fx[1] as f64 - target[1] as f64,
-                z: fx[2] as f64 - target[2] as f64,
+                x: (fx[0] - target[0]) as f64,
+                y: (fx[1] - target[1]) as f64,
+                z: (fx[2] - target[2]) as f64,
             };
 
             let tmp = jacobian.solve(tmp2)?;
