@@ -1,5 +1,7 @@
 use std::any::Any;
 
+use log::trace;
+
 use crate::{
     from_f32_to_u16, from_u16_to_f32,
     state::Context,
@@ -235,15 +237,27 @@ impl Pipeline {
         x[3] = if self.in_chans == 4 { target[3] } else { 0.0 };
 
         // Iterate
-        for _ in 0..INVERSION_MAX_ITERATIONS {
+        for i in 0..INVERSION_MAX_ITERATIONS {
+            trace!(
+                "attempt {}\ttarget = {{{}, {}, {}}}\tactual = {{{}, {}, {}}}",
+                i + 1,
+                target[0],
+                target[1],
+                target[2],
+                x[0],
+                x[1],
+                x[2]
+            );
+
             // Get beginning fx
             self.eval_f32(&x, &mut fx)?;
 
             // Compute error
-            let error = euclidean_distance(&x[0..3], &target[0..3]) as f64;
+            trace!("distance from target = {}", error);
 
             // If not convergent, return last safe value
             if error >= last_error {
+                trace!("error ({}) >= last_error ({})", error, last_error);
                 break;
             }
 
@@ -253,12 +267,15 @@ impl Pipeline {
 
             // Found an exact match?
             if error <= 0.0 {
+                trace!("exact match found");
                 break;
             }
 
             // Obtain slope (the Jacobian)
             let mut jacobian = MAT3::default();
             for j in 0..3 {
+                trace!("building matrix. pass {} of 3", j + 1);
+
                 let mut xd = x.clone();
                 let mut fxd = [0f32; 4];
 

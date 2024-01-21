@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use log::trace;
 use paste::paste;
 
 use crate::{
@@ -509,12 +510,37 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
         })) as usize;
 
     let z0 = p.opta[0] as i32 * z0;
-    let mut z1 = (z0
-        + (if input[2] == 0xffff {
-            0
-        } else {
-            p.opta[0] as i32
-        })) as usize;
+    trace!(
+        "tetrahedral_interp_u16\n\
+        input: [{}, {}, {}]\n\
+        domain: [{}, {}, {}]\n\
+        opta:   [{}, {}, {}]\n\
+        table size: {}\n\
+        table offset: {}\n\
+        fx: {}\tfy: {}\tfz: {}\n\
+        x0: {}\ty0: {}\tz0: {}\n\
+        x1: {}\ty1: {}\tz1: {}",
+        input[0],
+        input[1],
+        input[2],
+        p.domain[0],
+        p.domain[1],
+        p.domain[2],
+        p.opta[0],
+        p.opta[1],
+        p.opta[2],
+        lut_table.len(),
+        x0 + y0 + z0,
+        fx,
+        fy,
+        fz,
+        x0,
+        y0,
+        z0,
+        x1,
+        y1,
+        z1
+    );
 
     let mut lut_table = &lut_table[((x0 + y0 + z0) as usize)..];
 
@@ -531,7 +557,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c3 = c3 - c2;
                 let c2 = c2 - c1;
                 let c1 = c1 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -547,7 +576,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c2 = c2 - c1;
                 let c1 = c1 - c3;
                 let c3 = c3 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -563,7 +595,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c2 = c2 - c3;
                 let c3 = c3 - c1;
                 let c1 = c1 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -581,7 +616,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c3 = c3 - c1;
                 let c1 = c1 - c2;
                 let c2 = c2 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -597,7 +635,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c1 = c1 - c3;
                 let c3 = c3 - c2;
                 let c2 = c2 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
@@ -613,7 +654,10 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
                 let c1 = c1 - c2;
                 let c2 = c2 - c3;
                 let c3 = c3 - c0;
-                let rest = rx.wrapping_mul(c1 as i32) + ry.wrapping_mul(c2 as i32) + rz.wrapping_mul(c3 as i32) + 0x8001;
+                let rest = rx.wrapping_mul(c1 as i32)
+                    + ry.wrapping_mul(c2 as i32)
+                    + rz.wrapping_mul(c3 as i32)
+                    + 0x8001;
                 output[0] = (c0 as i32 + ((rest + (rest >> 16)) >> 16)) as u16;
                 output = &mut output[1..];
             }
