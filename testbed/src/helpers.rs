@@ -32,6 +32,10 @@ pub fn die(text: &str) -> ! {
     exit(1)
 }
 
+pub fn dbg_thread() -> Context {
+    Context::new(&[], None).unwrap()
+}
+
 pub fn fatal_error_quit(_ctx: &Context, _level: Level, _ec: ErrorCode, text: &str) {
     die(text)
 }
