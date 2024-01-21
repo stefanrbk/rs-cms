@@ -24,7 +24,14 @@ fn check_1d(nodes_to_check: usize, down: bool, max_err: u32) -> Result<()> {
 
     build_table(nodes_to_check, &mut tab, down);
 
-    let p = InterpParams::compute(ctx, nodes_to_check, 1, 1, tab.into_boxed_slice(), lerp_flags::BITS_16)?;
+    let p = InterpParams::compute(
+        ctx,
+        nodes_to_check,
+        1,
+        1,
+        tab.into_boxed_slice(),
+        lerp_flags::BITS_16,
+    )?;
     if let InterpFunction::U16(lerp) = p.interpolation {
         for i in 0..0xffff {
             let r#in = [i as u16];
