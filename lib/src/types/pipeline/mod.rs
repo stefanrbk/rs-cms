@@ -253,6 +253,7 @@ impl Pipeline {
             self.eval_f32(&x, &mut fx)?;
 
             // Compute error
+            let error = euclidean_distance(&fx[0..3], &target[0..3]) as f64;
             trace!("distance from target = {}", error);
 
             // If not convergent, return last safe value
