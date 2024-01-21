@@ -164,13 +164,13 @@ pub fn quantize_val(i: f64, max_samples: usize) -> u16 {
 pub(crate) fn from_f32_to_u16(r#in: &[f32], out: &mut [u16]) {
     let len = r#in.len();
     for i in 0..len {
-        out[i] = quick_saturate_word(i as f64 * 65535f64);
+        out[i] = quick_saturate_word(r#in[i] as f64 * 65535f64);
     }
 }
 
 pub(crate) fn from_u16_to_f32(r#in: &[u16], out: &mut [f32]) {
     let len = r#in.len();
     for i in 0..len {
-        out[i] = i as f32 / 65535f32;
+        out[i] = (r#in[i] as f64 / 65535f64) as f32;
     }
 }
