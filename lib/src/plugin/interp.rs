@@ -494,22 +494,14 @@ fn tetrahedral_interp_u16(input: &[u16], mut output: &mut [u16], p: &InterpParam
     let rz = fixed_rest_to_int(fz);
 
     let x0 = p.opta[2] as i32 * x0;
-    let mut x1 = (x0
-        + (if input[0] == 0xffff {
-            0
-        } else {
-            p.opta[2] as i32
-        })) as usize;
+    let mut x1 = if input[0] == 0xffff { 0 } else { p.opta[2] };
 
     let y0 = p.opta[1] as i32 * y0;
-    let mut y1 = (y0
-        + (if input[1] == 0xffff {
-            0
-        } else {
-            p.opta[1] as i32
-        })) as usize;
+    let mut y1 = if input[1] == 0xffff { 0 } else { p.opta[1] };
 
     let z0 = p.opta[0] as i32 * z0;
+    let mut z1 = if input[2] == 0xffff { 0 } else { p.opta[0] };
+
     trace!(
         "tetrahedral_interp_u16\n\
         input: [{}, {}, {}]\n\
