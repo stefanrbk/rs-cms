@@ -40,7 +40,7 @@ impl Pipeline {
 
             // Check chain consistency
             let mut prev = first;
-            for i in 0..len {
+            for i in 1..len {
                 let next = &self.elements[i];
 
                 if next.in_chans != prev.out_chans {
