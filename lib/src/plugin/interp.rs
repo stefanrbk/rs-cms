@@ -671,7 +671,11 @@ macro_rules! lut_u16 {
 
                 let (c1, c2, c3) = _lut!(i32 => ($lut, out_chan, c0) => $({$($c_x_, $c_y_, $c_z_);*}),*);
 
-                let rest = c1 * $rx + c2 * $ry + c3 * $rz;
+                let (rest1, _) = c1.overflowing_mul($rx);
+                let (rest2, _) = c2.overflowing_mul($ry);
+                let (rest3, _) = c3.overflowing_mul($rz);
+                let (rest4, _) = rest1.overflowing_add(rest2);
+                let (rest, _) = rest4.overflowing_add(rest3);
                 $output[out_chan] = (c0 + round_fixed_to_int(to_fixed_domain(rest))) as u16;
             }
     };
