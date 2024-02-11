@@ -149,6 +149,10 @@ pub fn main() {
             "Reverse interpolation 3 -> 3",
             check_reverse_interpolation_3x3,
         );
+        check(
+            "Reverse interpolation 4 -> 3",
+            check_reverse_interpolation_4x3,
+        );
     }
 
     let total_failed = TOTALFAIL.load(Ordering::SeqCst) as i32;
