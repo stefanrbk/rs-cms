@@ -59,6 +59,12 @@ pub fn main() {
 
     simple_logger::init_with_level(Level::Info).unwrap();
 
+    let checks: bool = *args.get_one("checks").unwrap();
+    let exhaustive: bool = *args.get_one("exhaustive").unwrap();
+    let plugins: bool = *args.get_one("plugins").unwrap();
+    let speed: bool = *args.get_one("speed").unwrap();
+    let zoo: bool = *args.get_one("zoo").unwrap();
+
     info!("rs-cms {} test bed", rs_cms::VERSION);
 
     info!("Installing error logger ...");
@@ -74,7 +80,7 @@ pub fn main() {
     check("Fixed point 8.8 representation", check_fixed_point_8_8);
     check("D50 roundtrip", check_d50_roundtrip);
 
-    if *args.get_one("checks").unwrap() {
+    if checks {
         check("1D interpolation in 2pt tables", check_1d_lerp_2);
         check("1D interpolation in 3pt tables", check_1d_lerp_3);
         check("1D interpolation in 4pt tables", check_1d_lerp_4);
@@ -101,7 +107,7 @@ pub fn main() {
             check_1d_lerp_18_down,
         );
 
-        if *args.get_one("exhaustive").unwrap() {
+        if exhaustive {
             check("1D interpolation in n tables", exhaustive_check_1d_lerp);
             check(
                 "1D interpolation in descending n tables",
@@ -126,7 +132,7 @@ pub fn main() {
             check_3d_interpolation_u16_trilinear,
         );
 
-        if *args.get_one("exhaustive").unwrap() {
+        if exhaustive {
             check(
                 "Exhaustive 3D interpolation Tetrahedral (f32)",
                 exhaustive_check_3d_interpolation_f32_tetrahedral,
@@ -152,6 +158,12 @@ pub fn main() {
         check(
             "Reverse interpolation 4 -> 3",
             check_reverse_interpolation_4x3,
+        );
+
+        check("3D interpolation", check_3d_interp);
+        check(
+            "3D interpolation with granularity",
+            check_3d_interp_granular,
         );
     }
 
