@@ -368,8 +368,10 @@ impl Stage {
             sampler(r#in, out, cargo)?;
 
             if flags & SAMPLER_INSPECT == 0 {
+                if !clut.tab.is_empty() {
                 for t in 0..n_outputs {
                     clut.tab[index + t] = out[t];
+                    }
                 }
             }
 
