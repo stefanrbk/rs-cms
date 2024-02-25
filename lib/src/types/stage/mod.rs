@@ -359,8 +359,10 @@ impl Stage {
                 r#in[t] = quantize_val(colorant as f64, n_samples[t]);
             }
 
+            if !clut.tab.is_empty() {
             for t in 0..n_outputs {
                 out[t] = clut.tab[index + t];
+                }
             }
 
             sampler(r#in, out, cargo)?;
