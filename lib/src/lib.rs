@@ -30,6 +30,7 @@ pub mod plugin;
 mod sem_ver;
 pub mod sig;
 pub mod state;
+pub(crate) mod threading;
 pub mod types;
 
 pub use consts::*;
